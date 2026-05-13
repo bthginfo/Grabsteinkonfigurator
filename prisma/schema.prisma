@@ -1,7 +1,9 @@
 // Prisma schema — https://www.prisma.io/docs/reference/prisma-schema-reference
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // Vercel Serverless (Linux): zusätzlicher Engine-Binary — lokal weiterhin "native"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

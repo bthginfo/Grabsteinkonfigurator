@@ -189,10 +189,10 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 ### Phase 1 — Wizard + Preis ohne 3D (ca. 1–2 Wochen)
 
-- [ ] Zustand/Zod: alle Wizard-Schritte (UI + Validierung)
-- [ ] `lib/pricing` + Tests mit Beispiel-Katalog (`config/catalog`)
-- [ ] Entwurf in DB speichern / laden
-- [ ] Zusammenfassungsseite mit Positionsliste
+- [x] Zustand/Zod: alle Wizard-Schritte (UI + Validierung)
+- [x] `lib/pricing` + Tests mit Beispiel-Katalog (`config/catalog/sample.json`)
+- [x] Entwurf in DB speichern / laden (`/konfigurator/d/[orderId]`)
+- [x] Zusammenfassungsseite mit Positionsliste (Schritt 11)
 
 ### Phase 2 — PDF + SMTP (ca. 1 Woche)
 
@@ -223,5 +223,5 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 ## 10. Nächster konkreter Schritt nach diesem Plan
 
 1. ~~Repo mit **Phase 0** scaffolden~~ (erledigt).
-2. **Ein** Referenz-Preis-Szenario (z. B. Urnengrab Stele schwarz) als **Golden-Test** für `lib/pricing`.
-3. Erstes **GLTF** einbinden und Wizard-Seite mit **Schritt 1** verbinden (inkl. Entwurf in DB optional).
+2. ~~Referenz-Preis + Wizard Phase 1~~ (erledigt: `npm run test`, `lib/pricing/calculate.test.ts`).
+3. **Phase 2:** PDF DE/EN + SMTP — oder **Phase 3:** 3D-Vorschau (GLTF + R3F).

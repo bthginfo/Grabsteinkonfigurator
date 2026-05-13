@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ConfiguratorLayout({
   children,
 }: {
@@ -10,12 +12,12 @@ export default function ConfiguratorLayout({
           <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
             Konfigurator
           </span>
-          <a
+          <Link
             href="/"
             className="text-sm text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-200"
           >
             Zur Startseite
-          </a>
+          </Link>
         </div>
       </header>
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-8">{children}</div>

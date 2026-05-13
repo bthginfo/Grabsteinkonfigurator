@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "currency": "EUR",
+  "vatRate": 0.2,
+  "taxLabel": "USt AT 20 % (Beispiel — je Land anpassen)",
+  "letterSandPerChar": 18,
+  "goldPerCharAddon": 6,
+  "ornamentEach": 80,
+  "montageNet": 260,
+  "bronzePrices": {
+    "keins": 0,
+    "kreuz_standard": 180,
+    "kreuz_premium": 450,
+    "vase": 95,
+    "laterne": 120,
+    "weihwasserbecken": 75,
+    "sonder": 200
+  },
+  "enclosurePrices": {
+    "keine": 0,
+    "granit_4seitig": 420,
+    "abdeckplatte": 190,
+    "kieselpflaster": 150,
+    "pflanzflaeche": 110
+  },
+  "bases": [
+    {
+      "id": "urne_stele_schwarz_45308",
+      "label": "Urnengrab Stele, Granit schwarz poliert 45×30×8 cm",
+      "grabtyp": "urnengrab",
+      "form": "stele",
+      "material": "granit_schwarz",
+      "surface": "poliert",
+      "heightCm": 45,
+      "widthCm": 30,
+      "depthCm": 8,
+      "priceNet": 590
+    },
+    {
+      "id": "einzel_stele_grau_604010",
+      "label": "Einzelgrab Stele, Granit grau poliert 60×40×10 cm",
+      "grabtyp": "einzelgrab",
+      "form": "stele",
+      "material": "granit_grau",
+      "surface": "poliert",
+      "heightCm": 60,
+      "widthCm": 40,
+      "depthCm": 10,
+      "priceNet": 940
+    }
+  ]
+}
