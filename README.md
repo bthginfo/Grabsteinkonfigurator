@@ -1,3 +1,5 @@
 # Grabstein Konfigurator
 
 Konfigurator für Grabsteine — neues Repository, bereit für deine Implementierung.
+
+**Architektur- & Implementierungsplan:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
