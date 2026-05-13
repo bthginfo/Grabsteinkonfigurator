@@ -196,9 +196,9 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 ### Phase 2 — PDF + SMTP (ca. 1 Woche)
 
-- [ ] PDF DE + PDF EN aus `Order`
-- [ ] Nodemailer: Versand an Kunde + optional intern + Anhänge
-- [ ] Download-Link für PDF als Fallback
+- [x] PDF DE + PDF EN aus `Order` (`/api/orders/[orderId]/pdf`, PDFKit)
+- [x] Nodemailer: Versand an Kunde + optional `SMTP_SUPPLIER_TO` (EN-Anhang)
+- [x] Download-Link für PDF (Zusammenfassung Schritt 11)
 
 ### Phase 3 — 3D MVP (ca. 1–2 Wochen)
 
@@ -224,4 +224,5 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 1. ~~Repo mit **Phase 0** scaffolden~~ (erledigt).
 2. ~~Referenz-Preis + Wizard Phase 1~~ (erledigt: `npm run test`, `lib/pricing/calculate.test.ts`).
-3. **Phase 2:** PDF DE/EN + SMTP — oder **Phase 3:** 3D-Vorschau (GLTF + R3F).
+3. ~~**Phase 2:** PDF DE/EN + SMTP~~ (erledigt).
+4. **Phase 3:** 3D-Vorschau (GLTF + R3F) — oder **Phase 4** Admin.

@@ -41,6 +41,7 @@ npm run dev
 - Startseite: [http://localhost:3000](http://localhost:3000)  
 - Konfigurator (neuer Entwurf): [http://localhost:3000/konfigurator](http://localhost:3000/konfigurator)  
 - Entwurf fortsetzen: URL aus der Adresszeile nach „Neuen Entwurf starten“ (`/konfigurator/d/…`)
+- PDF-Download (nach Wizard Zusammenfassung): `GET /api/orders/<orderId>/pdf?variant=customer-de` bzw. `variant=supplier-en`
 - Admin (Platzhalter): [http://localhost:3000/admin](http://localhost:3000/admin)
 
 ## Nützliche Befehle
@@ -59,10 +60,10 @@ npm run dev
 - **Runtime:** Auf Vercel **PostgreSQL** verwenden (SQLite dort nicht sinnvoll). Schritte zum Umstellen des Prisma-Schemas und `binaryTargets`: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
 - **Hinweis:** Entwurfs-URLs (`/konfigurator/d/…`) sind ohne Auth öffentlich — für Produktion Zugriffsschutz oder Token ergänzen.
 
-## Phase 0–1 (Stand)
+## Phase 0–2 (Stand)
 
-- **Phase 0:** Next.js, Prisma, Docker-Compose-Beispiel, Routen-Gruppen.
-- **Phase 1:** 11-Schritt-Wizard (Zustand), `config/catalog/sample.json`, `lib/pricing/calculate`, Vitest, Server Actions `createDraft` / `saveDraft`, dynamische Route `konfigurator/d/[orderId]`.
+- **Phase 0–1:** wie zuvor (Wizard, Preis, SQLite lokal).
+- **Phase 2:** PDF-Angebot DE + Lieferantenblatt EN (`lib/pdf/*`), Download-API `GET /api/orders/[orderId]/pdf?variant=…`, E-Mail-Versand (`lib/mail/*`, Server Action `sendOfferEmailAction`), SMTP über Umgebungsvariablen.
 
 ## Paketname
 

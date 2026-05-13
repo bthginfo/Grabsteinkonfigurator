@@ -18,5 +18,11 @@ export default async function KonfiguratorDraftPage({
     notFound();
   }
   const initialDraft = parseMonumentDraft(order.configuration ?? { schemaVersion: 1 });
-  return <WizardClient orderId={order.id} initialDraft={initialDraft} />;
+  return (
+    <WizardClient
+      orderId={order.id}
+      initialDraft={initialDraft}
+      initialCustomerEmail={order.customerEmail}
+    />
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useStore } from "zustand/react";
 import catalogSample from "@/config/catalog/sample.json";
 import {
@@ -9,6 +9,7 @@ import {
 import { wizardStepLabels, WIZARD_SUMMARY_STEP } from "@/lib/config/wizard-steps";
 import type { MonumentDraft } from "@/lib/config/monument-schema";
 import { saveDraftConfiguration } from "@/lib/actions/draft-actions";
+import { sendOfferEmailAction } from "@/lib/actions/email-actions";
 import { calculatePrice } from "@/lib/pricing/calculate";
 import { createWizardStore, type WizardStore } from "./wizard-store";
 
@@ -47,15 +48,23 @@ function formatEuro(n: number) {
 export function WizardClient({
   orderId,
   initialDraft,
+  initialCustomerEmail,
 }: {
   orderId: string;
   initialDraft: MonumentDraft;
+  initialCustomerEmail: string | null;
 }) {
   const [store] = useState(() => createWizardStore(orderId, initialDraft));
-  return <WizardInner store={store} />;
+  return <WizardInner store={store} initialCustomerEmail={initialCustomerEmail} />;
 }
 
-function WizardInner({ store }: { store: WizardStore }) {
+function WizardInner({
+  store,
+  initialCustomerEmail,
+}: {
+  store: WizardStore;
+  initialCustomerEmail: string | null;
+}) {
   const step = useStore(store, (s) => s.step);
   const draft = useStore(store, (s) => s.draft);
   const patchDraft = useStore(store, (s) => s.patchDraft);
@@ -63,6 +72,10 @@ function WizardInner({ store }: { store: WizardStore }) {
   const orderId = useStore(store, (s) => s.orderId);
 
   const [error, setError] = useState<string | null>(null);
+  const [emailState, emailFormAction, emailPending] = useActionState(
+    sendOfferEmailAction,
+    null,
+  );
 
   useEffect(() => {
     if (step === 5) {
@@ -459,6 +472,54 @@ function WizardInner({ store }: { store: WizardStore }) {
               {price.reason}
             </p>
           )}
+          <div className="flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              PDF-Download
+            </p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <a
+                className="rounded-lg border border-zinc-300 px-3 py-2 font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                href={`/api/orders/${orderId}/pdf?variant=customer-de`}
+              >
+                Angebot (DE)
+              </a>
+              <a
+                className="rounded-lg border border-zinc-300 px-3 py-2 font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-900"
+                href={`/api/orders/${orderId}/pdf?variant=supplier-en`}
+              >
+                Lieferantenblatt (EN)
+              </a>
+            </div>
+            <form action={emailFormAction} className="flex flex-col gap-2 sm:max-w-md">
+              <input name="orderId" type="hidden" value={orderId} />
+              <label className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                PDFs per E-Mail senden
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="name@beispiel.de"
+                  defaultValue={initialCustomerEmail ?? ""}
+                  className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-zinc-900 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={emailPending}
+                className="w-fit rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-200 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              >
+                {emailPending ? "Senden…" : "An Kunden-E-Mail senden"}
+              </button>
+              {emailState?.error ? (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+                  {emailState.error}
+                </p>
+              ) : null}
+              {emailState?.ok && emailState.message ? (
+                <p className="text-sm text-emerald-700 dark:text-emerald-400">{emailState.message}</p>
+              ) : null}
+            </form>
+          </div>
         </div>
       ) : null}
 

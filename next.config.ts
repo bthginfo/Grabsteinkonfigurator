@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pdfkit", "nodemailer"],
   turbopack: {
     root,
   },
