@@ -1,0 +1,14 @@
+# Umgebung & Geheimnisse
+.env
+.env.*
+!.env.example
+
+# Betriebssystem
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editoren
+.idea/
+.vscode/
+*.swp
