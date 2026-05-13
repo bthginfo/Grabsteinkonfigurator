@@ -18,25 +18,19 @@ cd "Grabstein Konfigurator"
 copy .env.example .env
 ```
 
-PostgreSQL starten (empfohlen):
+**Datenbank (Standard lokal):** SQLite (`DATABASE_URL=file:../dev.db` → Datei `dev.db` im Projektroot). Nach `copy .env.example .env` einmal:
 
 ```bash
-docker compose up -d
+npx prisma db push
 ```
 
-Schema anwenden (nach `docker compose up -d` oder wenn `DATABASE_URL` gesetzt ist):
+**Optional PostgreSQL:** `docker compose up -d`, in `.env` die Postgres-`DATABASE_URL` setzen und in `prisma/schema.prisma` wieder `postgresql` verwenden — Details: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
 
-```bash
-npx prisma migrate deploy
-```
-
-Für lokale Entwicklung mit Schema-Iteration alternativ:
+Mit Postgres statt SQLite:
 
 ```bash
 npx prisma migrate dev
 ```
-
-Ohne Docker: `DATABASE_URL` in `.env` setzen (z. B. verwaltete Postgres-Instanz), dann dieselben Prisma-Befehle.
 
 ## Entwicklung
 
@@ -61,9 +55,8 @@ npm run dev
 
 ## Vercel (Deployment)
 
-- **Build:** `npm run build` führt `prisma generate` aus; **keine** DB-Verbindung nötig nur für den Build.
-- **Umgebung:** In Vercel `DATABASE_URL` auf verwaltetes Postgres setzen (z. B. [Neon](https://neon.tech)), danach `npx prisma migrate deploy` einmalig (lokal oder CI) gegen dieselbe DB ausführen.
-- **Prisma:** Im Schema ist `binaryTargets = ["native", "rhel-openssl-3.0.x"]` gesetzt — passend für Linux-Serverless auf Vercel.
+- **Build:** `npm run build` führt `prisma generate` aus; für den Build allein ist **keine** laufende DB nötig.
+- **Runtime:** Auf Vercel **PostgreSQL** verwenden (SQLite dort nicht sinnvoll). Schritte zum Umstellen des Prisma-Schemas und `binaryTargets`: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
 - **Hinweis:** Entwurfs-URLs (`/konfigurator/d/…`) sind ohne Auth öffentlich — für Produktion Zugriffsschutz oder Token ergänzen.
 
 ## Phase 0–1 (Stand)

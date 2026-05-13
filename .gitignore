@@ -42,7 +42,7 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Editors
-.idea/
-.vscode/
-*.swp
+# SQLite (lokal, ohne Docker; relativ zu prisma/schema.prisma → Projektroot)
+/dev.db
+/dev.db-journal
+/prisma/prisma/
