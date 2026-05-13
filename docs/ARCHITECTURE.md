@@ -182,10 +182,10 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 ### Phase 0 — Fundament (ca. 1 Woche)
 
-- [ ] Next.js + TS + Tailwind + ESLint/Prettier
-- [ ] Prisma + PostgreSQL (Docker Compose optional)
-- [ ] Basis-Layouts: Marketing, Wizard-Shell, Admin-Shell
-- [ ] `ATTRIBUTIONS.md` anlegen
+- [x] Next.js + TS + Tailwind + ESLint/Prettier
+- [x] Prisma + PostgreSQL (Docker Compose optional)
+- [x] Basis-Layouts: Marketing, Wizard-Shell, Admin-Shell
+- [x] `ATTRIBUTIONS.md` anlegen
 
 ### Phase 1 — Wizard + Preis ohne 3D (ca. 1–2 Wochen)
 
@@ -222,8 +222,6 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 ## 10. Nächster konkreter Schritt nach diesem Plan
 
-1. Repo mit **Phase 0** scaffolden (`create-next-app`, Prisma, Ordner wie oben).
+1. ~~Repo mit **Phase 0** scaffolden~~ (erledigt).
 2. **Ein** Referenz-Preis-Szenario (z. B. Urnengrab Stele schwarz) als **Golden-Test** für `lib/pricing`.
-3. Erstes **GLTF** einbinden und leere Wizard-Seite mit **Schritt 1** verbinden (noch ohne Speicherung).
-
-Wenn du möchtest, kann als nächster Schritt direkt **Phase 0 im Repository ausgeführt** werden (Scaffold + Prisma-Schema-V0).
+3. Erstes **GLTF** einbinden und Wizard-Seite mit **Schritt 1** verbinden (inkl. Entwurf in DB optional).

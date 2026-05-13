@@ -1,0 +1,23 @@
+// Prisma schema — https://www.prisma.io/docs/reference/prisma-schema-reference
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Auftrag oder Entwurf; Konfiguration als JSON (schemaVersion im JSON empfohlen).
+model Order {
+  id             String   @id @default(cuid())
+  status         String   @default("draft")
+  configuration  Json?
+  customerEmail  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
