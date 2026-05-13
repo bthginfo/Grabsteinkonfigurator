@@ -6,6 +6,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfkit", "nodemailer"],
+  transpilePackages: ["three", "@react-three/fiber", "@react-three/drei"],
   turbopack: {
     root,
   },

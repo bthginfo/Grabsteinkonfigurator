@@ -89,12 +89,13 @@ Grabstein Konfigurator/
 ├── components/
 │   ├── ui/                   # Buttons, Dialoge, …
 │   ├── wizard/               # Schritt-Komponenten
-│   └── preview/              # Canvas / R3F-Canvas
+│   └── preview/              # R3F 3D-Vorschau
 ├── lib/
 │   ├── pricing/              # Reine Funktionen: Eingabe Konfig → Betrag
+│   ├── preview/              # Stein-Farbe / PBR-Hilfen für Vorschau
 │   ├── pdf/                  # Template-Zusammenbau
 │   ├── mail/                 # SMTP-Versand, Templates
-│   └── db/                   # Prisma client singleton
+│   └── prisma.ts             # Prisma client singleton
 ├── config/
 │   └── catalog/              # JSON/YAML: Materialien, Add-ons (bis DB reift)
 ├── prisma/
@@ -137,9 +138,9 @@ Grabstein Konfigurator/
 
 ### 5.5 3D-Vorschau (`components/preview`)
 
-- **Phase A:** Statisches GLTF + Material-Swap (Roughness/Color-Maps) + Text als Textur/troika.
-- **Phase B:** Mehrere Modelle pro Formfamilie; HDRI aus drei.
-- **Phase C:** Aufwändigere Effekte (Displacement, Postprocessing) — nach Bedarf.
+- **Umgesetzt (MVP):** R3F-Quader + `MeshPhysicalMaterial` nach Material/Oberfläche (`lib/preview/stone-appearance.ts`), `Environment` + `OrbitControls`, Inschrift per `Html`, PNG-Screenshot.
+- **Phase B (optional):** GLTF-Modelle pro Formfamilie; HDRI feiner abstimmen.
+- **Phase C (optional):** Displacement, Postprocessing — nach Bedarf.
 
 ### 5.6 Admin
 
@@ -202,10 +203,10 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 ### Phase 3 — 3D MVP (ca. 1–2 Wochen)
 
-- [ ] Ein CC0/CC-BY-Modell in `public/models`
-- [ ] R3F-Scene: OrbitControls, Environment, Materialwechsel
-- [ ] Namen/Datum auf Oberfläche (troika oder Textur)
-- [ ] Screenshot-Button → PNG für Anhang/Archiv
+- [x] Platzhalter-Geometrie (Quader, kein externes glTF nötig für MVP)
+- [x] R3F-Scene: OrbitControls, Environment, materialabhängige PBR-Farben
+- [x] Inschrift: `Html`-Overlay auf der Vorderseite (Name, Daten, Spruch)
+- [x] Screenshot-Button → PNG-Download (`preserveDrawingBuffer`)
 
 ### Phase 4 — Admin + Katalog (ca. 1 Woche)
 
@@ -225,4 +226,5 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 1. ~~Repo mit **Phase 0** scaffolden~~ (erledigt).
 2. ~~Referenz-Preis + Wizard Phase 1~~ (erledigt: `npm run test`, `lib/pricing/calculate.test.ts`).
 3. ~~**Phase 2:** PDF DE/EN + SMTP~~ (erledigt).
-4. **Phase 3:** 3D-Vorschau (GLTF + R3F) — oder **Phase 4** Admin.
+4. ~~**Phase 3:** 3D-Vorschau (R3F MVP)~~ (erledigt).
+5. **Phase 4:** Admin + Katalog — oder **GLTF**-Modelle für realistischere Vorschau.

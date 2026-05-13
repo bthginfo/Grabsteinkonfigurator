@@ -60,10 +60,10 @@ npm run dev
 - **Runtime:** Auf Vercel **PostgreSQL** verwenden (SQLite dort nicht sinnvoll). Schritte zum Umstellen des Prisma-Schemas und `binaryTargets`: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
 - **Hinweis:** Entwurfs-URLs (`/konfigurator/d/…`) sind ohne Auth öffentlich — für Produktion Zugriffsschutz oder Token ergänzen.
 
-## Phase 0–2 (Stand)
+## Phase 0–3 (Stand)
 
-- **Phase 0–1:** wie zuvor (Wizard, Preis, SQLite lokal).
-- **Phase 2:** PDF-Angebot DE + Lieferantenblatt EN (`lib/pdf/*`), Download-API `GET /api/orders/[orderId]/pdf?variant=…`, E-Mail-Versand (`lib/mail/*`, Server Action `sendOfferEmailAction`), SMTP über Umgebungsvariablen.
+- Wizard, Preis, SQLite lokal, PDF/Mail (Phase 0–2).
+- **3D:** Schritt 11 — `MonumentPreview` (R3F + drei), `lib/preview/stone-appearance.ts`, PNG-Screenshot.
 
 ## Paketname
 

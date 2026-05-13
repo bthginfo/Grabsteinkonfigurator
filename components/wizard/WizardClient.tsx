@@ -12,6 +12,7 @@ import { saveDraftConfiguration } from "@/lib/actions/draft-actions";
 import { sendOfferEmailAction } from "@/lib/actions/email-actions";
 import { calculatePrice } from "@/lib/pricing/calculate";
 import { createWizardStore, type WizardStore } from "./wizard-store";
+import { MonumentPreview } from "@/components/preview/MonumentPreview";
 
 type CatalogBase = (typeof catalogSample.bases)[number];
 
@@ -472,6 +473,7 @@ function WizardInner({
               {price.reason}
             </p>
           )}
+          <MonumentPreview draft={draft} orderId={orderId} />
           <div className="flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
             <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               PDF-Download
