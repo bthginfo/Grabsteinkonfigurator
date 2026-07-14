@@ -15,6 +15,10 @@ import {
   type MonumentDraft,
 } from "@/lib/config/monument-schema";
 import { calculatePrice, type PriceCatalog } from "@/lib/pricing/calculate";
+import {
+  assessProductionReadiness,
+  type ProductionIssueSeverity,
+} from "@/lib/specification/production-readiness";
 import { createWizardStore, type WizardStore } from "./wizard-store";
 
 const STAGES = [
@@ -272,6 +276,7 @@ function WizardInner({
   }, [step, draft, patchDraft, catalog]);
 
   const price = calculatePrice(draft, catalog);
+  const readiness = assessProductionReadiness(draft);
 
   const moveTo = (nextStep: number) => {
     const bounded = Math.min(5, Math.max(1, nextStep));
@@ -619,6 +624,7 @@ function WizardInner({
           </div>
           <MonumentPreview draft={draft} orderId={orderId} embedded />
           <PricePanel price={price} currency={catalog.currency} taxLabel={catalog.taxLabel} />
+          <ReadinessPanel readiness={readiness} currentStage={step} />
         </div>
         <p className="mt-3 px-1 text-xs leading-relaxed text-[#747b76]">
           Richtpreis auf Basis der aktuellen Auswahl. Naturstein, Fundament und örtliche Gegebenheiten werden vor einem verbindlichen Angebot geprüft.
@@ -884,6 +890,76 @@ function PricePanel({ price, currency, taxLabel }: { price: ReturnType<typeof ca
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ReadinessPanel({
+  readiness,
+  currentStage,
+}: {
+  readiness: ReturnType<typeof assessProductionReadiness>;
+  currentStage: number;
+}) {
+  const severityOrder: Record<ProductionIssueSeverity, number> = {
+    blocker: 0,
+    warning: 1,
+    recommendation: 2,
+  };
+  const visibleIssues = readiness.issues
+    .filter((item) => currentStage === 5 || item.stage <= currentStage)
+    .sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+    .slice(0, 3);
+  const nextOpenItem = readiness.checklist.find((item) => !item.complete);
+  const statusLabel = readiness.status === "quote_ready"
+    ? "Anfrage vollständig"
+    : readiness.status === "review_required"
+      ? "Technische Prüfung nötig"
+      : "Noch unvollständig";
+
+  return (
+    <div className="border-t border-[#d9ddda] bg-[#f7f8f7] p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#747b76]">Anfragereife</p>
+          <p className="mt-1 text-sm font-semibold text-[#202421]">{statusLabel}</p>
+        </div>
+        <span className="text-2xl font-semibold tabular-nums text-[#17624b]">{readiness.score}%</span>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden bg-[#dfe4e1]" aria-label={`Anfragereife ${readiness.score} Prozent`}>
+        <div
+          className="h-full bg-[#17624b] transition-[width] duration-300"
+          style={{ width: `${readiness.score}%` }}
+        />
+      </div>
+
+      {visibleIssues.length ? (
+        <ul className="mt-4 space-y-3">
+          {visibleIssues.map((item) => (
+            <li key={item.id} className="grid grid-cols-[8px_1fr] gap-3 text-xs leading-5">
+              <span
+                className={`mt-1.5 size-2 ${item.severity === "blocker" ? "bg-[#9f352a]" : item.severity === "warning" ? "bg-[#b87921]" : "bg-[#65706b]"}`}
+                aria-hidden="true"
+              />
+              <div>
+                <p className="font-semibold text-[#303632]">{item.title}</p>
+                <p className="text-[#626a65]">{item.action}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-xs leading-5 text-[#626a65]">
+          Dieser Schritt ist plausibel ausgefüllt.
+          {nextOpenItem ? ` Als Nächstes fehlt: ${nextOpenItem.label}.` : " Alle Angaben für die Anfrage sind vorhanden."}
+        </p>
+      )}
+
+      {currentStage === 5 ? (
+        <p className="mt-4 border-t border-[#d9ddda] pt-3 text-[11px] leading-5 text-[#747b76]">
+          Die Fertigungsfreigabe erfolgt erst nach Friedhofsprüfung, Bemusterung und statischer Auslegung durch den ausführenden Steinmetz.
+        </p>
+      ) : null}
     </div>
   );
 }

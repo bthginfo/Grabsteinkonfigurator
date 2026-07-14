@@ -1,4 +1,5 @@
 import type { MonumentDraft } from "@/lib/config/monument-schema";
+import { assessProductionReadiness } from "./production-readiness";
 
 export const SPEC_LABELS = {
   graveTypes: {
@@ -150,12 +151,9 @@ export function getMonumentComponents(draft: MonumentDraft): MonumentComponentSp
 }
 
 export function getSpecificationGaps(draft: MonumentDraft): string[] {
-  const gaps: string[] = [];
-  if (!draft.stoneTradeName?.trim()) gaps.push("exact commercial stone name / quarry and approved sample");
-  if (!draft.cemeteryName?.trim()) gaps.push("cemetery name and applicable regulations");
-  if (!draft.graveField?.trim() && !draft.graveNumber?.trim()) gaps.push("grave field / grave number");
-  gaps.push("foundation dimensions and anchoring calculation by installing mason");
-  gaps.push("signed inscription layout and dimensional drawing approval");
-  return gaps;
+  const assessment = assessProductionReadiness(draft);
+  return [
+    ...assessment.issues.map((item) => item.pdfMessage),
+    ...assessment.releaseRequirements.map((item) => item.pdfMessage),
+  ];
 }
-

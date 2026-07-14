@@ -3,9 +3,9 @@ import type { MonumentDraft } from "@/lib/config/monument-schema";
 import type { PriceResult } from "@/lib/pricing/calculate";
 import {
   getMonumentComponents,
-  getSpecificationGaps,
   SPEC_LABELS,
 } from "@/lib/specification/monument-spec";
+import { assessProductionReadiness } from "@/lib/specification/production-readiness";
 import { formatEuroDe } from "./customer-de";
 
 type OrderInfo = {
@@ -88,6 +88,7 @@ function drawFrontShape(doc: PDFKit.PDFDocument, draft: MonumentDraft, x: number
 }
 
 function drawTechnicalPage(doc: PDFKit.PDFDocument, draft: MonumentDraft) {
+  const readiness = assessProductionReadiness(draft);
   doc.addPage();
   doc.fillColor("#174b3b").font("Helvetica-Bold").fontSize(16).text("DIMENSIONAL INTENT DRAWING", 40, 40);
   doc.fillColor("#555").font("Helvetica").fontSize(8).text("Not a structural or anchoring calculation. All dimensions in centimetres. Do not scale from PDF.", 40, 62);
@@ -125,10 +126,26 @@ function drawTechnicalPage(doc: PDFKit.PDFDocument, draft: MonumentDraft) {
     doc.fillColor("#444").font("Helvetica").fontSize(8).text(`H ${component.heightCm} x W ${component.widthCm} x D ${component.depthCm} cm | ${component.note}`, 60, doc.y + 11, { width: 475 });
     doc.moveDown(1.65);
   }
-  section(doc, "Production release blockers");
-  for (const gap of getSpecificationGaps(draft)) {
-    doc.fillColor("#7a2e21").font("Helvetica").fontSize(8.5).text(`- ${gap}`, 50, doc.y, { width: 480 });
+  section(doc, "Configuration checks");
+  const visibleIssues = readiness.issues.slice(0, 6);
+  if (!visibleIssues.length) {
+    doc.fillColor("#285b48").font("Helvetica").fontSize(8.5).text("No dimensional, material or inscription contradictions detected by the configurator checks.", 50, doc.y, { width: 480 });
     doc.moveDown(0.55);
+  } else {
+    for (const item of visibleIssues) {
+      const prefix = item.severity === "blocker" ? "BLOCKER" : item.severity === "warning" ? "CHECK" : "NOTE";
+      doc.fillColor(item.severity === "blocker" ? "#7a2e21" : "#574d32").font("Helvetica").fontSize(8).text(`${prefix}: ${item.pdfMessage}`, 50, doc.y, { width: 480 });
+      doc.moveDown(0.5);
+    }
+    if (readiness.issues.length > visibleIssues.length) {
+      doc.fillColor("#555").font("Helvetica-Oblique").fontSize(7.5).text(`Plus ${readiness.issues.length - visibleIssues.length} additional configurator check(s) in the digital order record.`, 50, doc.y, { width: 480 });
+      doc.moveDown(0.5);
+    }
+  }
+  section(doc, "Mandatory production release controls");
+  for (const requirement of readiness.releaseRequirements) {
+    doc.fillColor("#7a2e21").font("Helvetica").fontSize(8).text(`- ${requirement.pdfMessage}`, 50, doc.y, { width: 480 });
+    doc.moveDown(0.5);
   }
   doc.moveDown(0.5);
   doc.rect(40, doc.y, CONTENT_WIDTH, 42).strokeColor("#9da5a1").stroke();
@@ -143,6 +160,7 @@ export function buildSupplierEnPdfBuffer(
   orderInfo: OrderInfo = {},
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
+    const readiness = assessProductionReadiness(draft);
     const chunks: Buffer[] = [];
     const doc = new PDFDocument({ size: "A4", margin: 40, info: { Title: `Fabrication specification ${orderId}` } });
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -154,7 +172,12 @@ export function buildSupplierEnPdfBuffer(
     doc.moveDown(0.6);
     const bannerY = doc.y;
     doc.rect(40, bannerY, CONTENT_WIDTH, 30).fill("#f2e8dc");
-    doc.fillColor("#7a3d16").font("Helvetica-Bold").fontSize(9).text("STATUS: FOR QUOTATION AND TECHNICAL REVIEW", 48, bannerY + 6);
+    const statusText = readiness.status === "quote_ready"
+      ? "STATUS: COMPLETE FOR QUOTATION / TECHNICAL REVIEW"
+      : readiness.status === "review_required"
+        ? "STATUS: CONFIGURATION CHECKS OPEN"
+        : "STATUS: INCOMPLETE CONFIGURATION";
+    doc.fillColor("#7a3d16").font("Helvetica-Bold").fontSize(9).text(statusText, 48, bannerY + 6);
     doc.font("Helvetica").fontSize(7.5).text("Do not manufacture before approved stone sample, cemetery approval and signed dimensional / inscription drawing.", 48, bannerY + 17);
     doc.y = bannerY + 34;
 
@@ -164,6 +187,7 @@ export function buildSupplierEnPdfBuffer(
     row(doc, "Cemetery", [draft.cemeteryName, draft.cemeteryCity].filter(Boolean).join(", "));
     row(doc, "Grave location", [draft.graveField, draft.graveNumber].filter(Boolean).join(" / "));
     row(doc, "Use / grave type", draft.grabtyp ? SPEC_LABELS.graveTypes[draft.grabtyp] : undefined);
+    row(doc, "Configuration completeness", `${readiness.score}% | ${readiness.issues.length} check(s) open`);
 
     section(doc, "Stone and workmanship");
     row(doc, "Monument form", draft.form ? SPEC_LABELS.forms[draft.form] : undefined);
