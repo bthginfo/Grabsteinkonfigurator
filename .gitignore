@@ -46,3 +46,7 @@ Desktop.ini
 /dev.db
 /dev.db-journal
 /prisma/prisma/
+
+# Local integration tooling
+/.agents/
+/skills-lock.json
