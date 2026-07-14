@@ -98,16 +98,18 @@ export function getMonumentComponents(draft: MonumentDraft): MonumentComponentSp
   if (!h || !w || !d) return [];
 
   const main: MonumentComponentSpec = {
-    item: draft.form === "buch" ? "Open book body" : "Main memorial stone",
+    item: draft.modelAsset?.label ?? (draft.form === "buch" ? "Open book body" : "Main memorial stone"),
     quantity: 1,
     heightCm: h,
     widthCm: w,
     depthCm: d,
-    note: "Finished overall dimensions; confirm production tolerances",
+    note: draft.modelAsset
+      ? `Custom model ${draft.modelAsset.id}; finished overall dimensions; manufacture from approved supplier CAD only`
+      : "Finished overall dimensions; confirm production tolerances",
   };
   const components = [main];
 
-  if (draft.form === "herz") {
+  if (!draft.modelAsset && draft.form === "herz") {
     components.push({
       item: "Heart base",
       quantity: 1,
@@ -117,7 +119,7 @@ export function getMonumentComponents(draft: MonumentDraft): MonumentComponentSp
       note: "Separate rectangular base, matching stone and finish",
     });
   }
-  if (draft.form === "breitstein" || draft.form === "sockelanlage") {
+  if (!draft.modelAsset && (draft.form === "breitstein" || draft.form === "sockelanlage")) {
     components.push({
       item: "Stone base / plinth",
       quantity: 1,
@@ -127,7 +129,7 @@ export function getMonumentComponents(draft: MonumentDraft): MonumentComponentSp
       note: "Separate base; dowel layout by installing mason",
     });
   }
-  if (draft.form === "kissenstein") {
+  if (!draft.modelAsset && draft.form === "kissenstein") {
     components.push({
       item: "Support slab",
       quantity: 1,
@@ -137,7 +139,7 @@ export function getMonumentComponents(draft: MonumentDraft): MonumentComponentSp
       note: "Matching support below inclined marker",
     });
   }
-  if (draft.form === "buch") {
+  if (!draft.modelAsset && draft.form === "buch") {
     components.push({
       item: "Inclined support wedge",
       quantity: 1,

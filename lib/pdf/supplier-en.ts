@@ -92,6 +92,13 @@ function drawTechnicalPage(doc: PDFKit.PDFDocument, draft: MonumentDraft) {
   doc.addPage();
   doc.fillColor("#174b3b").font("Helvetica-Bold").fontSize(16).text("DIMENSIONAL INTENT DRAWING", 40, 40);
   doc.fillColor("#555").font("Helvetica").fontSize(8).text("Not a structural or anchoring calculation. All dimensions in centimetres. Do not scale from PDF.", 40, 62);
+  if (draft.modelAsset) {
+    doc.fillColor("#7a3d16").font("Helvetica-Bold").fontSize(8).text(
+      `CUSTOM MODEL ${draft.modelAsset.id}: elevation below is diagrammatic only. Manufacture from the separately approved supplier CAD / shop drawing.`,
+      40, 75,
+      { width: CONTENT_WIDTH },
+    );
+  }
   const h = draft.heightCm ?? 1;
   const w = draft.widthCm ?? 1;
   const d = draft.depthCm ?? 1;
@@ -190,7 +197,14 @@ export function buildSupplierEnPdfBuffer(
     row(doc, "Configuration completeness", `${readiness.score}% | ${readiness.issues.length} check(s) open`);
 
     section(doc, "Stone and workmanship");
-    row(doc, "Monument form", draft.form ? SPEC_LABELS.forms[draft.form] : undefined);
+    row(doc, "Monument form", draft.modelAsset?.label ?? (draft.form ? SPEC_LABELS.forms[draft.form] : undefined));
+    if (draft.modelAsset) {
+      row(doc, "3D model ID", draft.modelAsset.id);
+      row(doc, "Supplier reference", draft.modelAsset.source?.supplierReference);
+      row(doc, "Source CAD file", draft.modelAsset.source?.originalFileName);
+      row(doc, "Source checksum SHA-256", draft.modelAsset.source?.checksumSha256);
+      row(doc, "Web preview asset", draft.modelAsset.runtimeUrl);
+    }
     row(doc, "Stone family", draft.material ? SPEC_LABELS.materials[draft.material] : undefined);
     row(doc, "Commercial stone name", draft.stoneTradeName || "TBC - supplier sample approval required");
     row(doc, "Finished overall H x W x D", draft.heightCm && draft.widthCm && draft.depthCm ? `${draft.heightCm} x ${draft.widthCm} x ${draft.depthCm} cm` : undefined);

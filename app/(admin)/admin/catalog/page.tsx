@@ -25,8 +25,9 @@ export default async function AdminCatalogPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-5">
         <Metric label="Basispreise" value={catalog.bases.length} />
+        <Metric label="3D-Modelle" value={catalog.models.length} />
         <Metric label="USt" value={`${(catalog.vatRate * 100).toFixed(0)} %`} />
         <Metric label="Montage netto" value={`${catalog.montageNet} ${catalog.currency}`} />
         <Metric label="Ornament netto" value={`${catalog.ornamentEach} ${catalog.currency}`} />

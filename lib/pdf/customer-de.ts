@@ -12,7 +12,8 @@ export function formatEuroDe(amount: number): string {
 function draftSummaryLines(draft: MonumentDraft): string[] {
   const lines: string[] = [];
   if (draft.grabtyp) lines.push(`Grabtyp: ${draft.grabtyp}`);
-  if (draft.form) lines.push(`Form: ${draft.form}`);
+  if (draft.modelAsset) lines.push(`Form: ${draft.modelAsset.label} (Modell ${draft.modelAsset.id})`);
+  else if (draft.form) lines.push(`Form: ${draft.form}`);
   if (draft.material) lines.push(`Material: ${draft.material}`);
   if (draft.surface) lines.push(`Oberfläche: ${draft.surface}`);
   if (

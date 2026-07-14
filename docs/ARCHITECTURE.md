@@ -139,7 +139,8 @@ Grabstein Konfigurator/
 ### 5.5 3D-Vorschau (`components/preview`)
 
 - **Umgesetzt:** formabhängige, weich gefaste R3F-Geometrien + `MeshPhysicalMaterial` mit PBR-Maps bzw. prozeduraler Granitkörnung (`lib/preview/stone-appearance.ts`), Atelierlicht + `OrbitControls`, Inschrift als SDF-Textmesh, PNG-Screenshot.
-- **Phase B (optional):** GLTF-Modelle pro Formfamilie; HDRI feiner abstimmen.
+- **Umgesetzt:** Erweiterbares GLB/glTF-Modellregister mit Maßnormalisierung,
+  Materialmodus, Beschriftungsfläche, CAD-Herkunft und parametrischem Fallback.
 - **Phase C (optional):** Displacement, Postprocessing — nach Bedarf.
 
 ### 5.6 Admin

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { MonumentDraft } from "@/lib/config/monument-schema";
+import { modelAssetSchema } from "@/lib/models/model-asset";
 
 export type PriceLine = {
   id: string;
@@ -52,6 +53,7 @@ export const priceCatalogSchema = z.object({
     }),
   bronzePrices: z.record(z.string(), z.number()),
   enclosurePrices: z.record(z.string(), z.number()),
+  models: z.array(modelAssetSchema).default([]),
   bases: z.array(
     z.object({
       id: z.string(),

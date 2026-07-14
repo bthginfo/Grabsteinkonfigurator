@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { modelAssetSchema } from "@/lib/models/model-asset";
 
 export const grabtypEnum = z.enum([
   "einzelgrab",
@@ -122,6 +123,7 @@ export const monumentConfigurationSchema = z.object({
   schemaVersion: z.literal(1),
   grabtyp: grabtypEnum,
   form: formEnum,
+  modelAsset: modelAssetSchema.optional(),
   material: materialEnum,
   stoneTradeName: z.string().trim().max(120).optional(),
   surface: surfaceEnum,
@@ -150,6 +152,7 @@ export const monumentDraftSchema = z.object({
   schemaVersion: z.literal(1),
   grabtyp: grabtypEnum.optional(),
   form: formEnum.optional(),
+  modelAsset: modelAssetSchema.optional(),
   material: materialEnum.optional(),
   stoneTradeName: z.string().trim().max(120).optional(),
   surface: surfaceEnum.optional(),

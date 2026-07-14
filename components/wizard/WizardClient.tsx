@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "zustand/react";
 import {
@@ -31,6 +31,7 @@ import {
   type MonumentDraft,
 } from "@/lib/config/monument-schema";
 import { calculatePrice, type PriceCatalog } from "@/lib/pricing/calculate";
+import { modelSelectionValue, type ModelAsset } from "@/lib/models/model-asset";
 import {
   assessProductionReadiness,
   type ProductionIssueSeverity,
@@ -268,6 +269,18 @@ function WizardInner({
 
   const price = calculatePrice(draft, catalog);
   const readiness = assessProductionReadiness(draft);
+  const modelOptions = useMemo(() => catalog.models
+    .filter((model) => model.enabled)
+    .map((model) => ({
+      value: modelSelectionValue(model),
+      label: model.label,
+      description: model.description,
+      badge: "3D-Modell",
+    })), [catalog.models]);
+  const formOptions = useMemo(() => [...FORMS, ...modelOptions], [modelOptions]);
+  const selectedFormValue = draft.modelAsset
+    ? modelSelectionValue(draft.modelAsset)
+    : draft.form;
 
   const moveTo = (nextStep: number) => {
     const bounded = Math.min(5, Math.max(1, nextStep));
@@ -306,7 +319,26 @@ function WizardInner({
   };
 
   const selectForm = (form: FormTyp) => {
-    patchDraft({ form, ...defaultDimensions(form) });
+    patchDraft({ form, modelAsset: undefined, ...defaultDimensions(form) });
+  };
+
+  const selectModel = (model: ModelAsset) => {
+    patchDraft({
+      form: model.fallbackForm,
+      modelAsset: model,
+      heightCm: model.nativeSizeCm.height,
+      widthCm: model.nativeSizeCm.width,
+      depthCm: model.nativeSizeCm.depth,
+    });
+  };
+
+  const selectFormOption = (value: string) => {
+    if (value.startsWith("model:")) {
+      const model = catalog.models.find((item) => modelSelectionValue(item) === value);
+      if (model) selectModel(model);
+      return;
+    }
+    selectForm(value as FormTyp);
   };
 
   return (
@@ -344,9 +376,9 @@ function WizardInner({
                       </span>
                     </p>
                     <ChoiceGrid
-                      options={FORMS}
-                      value={draft.form}
-                      onChange={(value) => selectForm(value as FormTyp)}
+                      options={formOptions}
+                      value={selectedFormValue}
+                      onChange={selectFormOption}
                       compact
                     />
                   </>
@@ -601,7 +633,7 @@ function WizardInner({
           <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#dce2de] bg-white px-4 sm:px-5">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#12644f]">3D-Konfiguration</p>
-              <p className="mt-0.5 text-xs font-medium text-[#4f5752]">{FORMS.find((item) => item.value === draft.form)?.label ?? "Form wählen"} · {MATERIALS.find((item) => item.value === draft.material)?.label ?? "Material wählen"}</p>
+              <p className="mt-0.5 text-xs font-medium text-[#4f5752]">{draft.modelAsset?.label ?? FORMS.find((item) => item.value === draft.form)?.label ?? "Form wählen"} · {MATERIALS.find((item) => item.value === draft.material)?.label ?? "Material wählen"}</p>
             </div>
             <span className="flex items-center gap-2 text-[11px] text-[#7c8882]"><span className="size-1.5 rounded-full bg-[#23a36d]" />Live</span>
           </div>
@@ -1082,7 +1114,7 @@ function ReadinessPanel({
 function ConfigurationSummary({ draft }: { draft: MonumentDraft }) {
   const rows = [
     ["Grabart", GRAVE_TYPES.find((item) => item.value === draft.grabtyp)?.label],
-    ["Form", FORMS.find((item) => item.value === draft.form)?.label],
+    ["Form", draft.modelAsset?.label ?? FORMS.find((item) => item.value === draft.form)?.label],
     ["Material", MATERIALS.find((item) => item.value === draft.material)?.label],
     ["Handelsname", draft.stoneTradeName],
     ["Oberfläche", SURFACES.find(([value]) => value === draft.surface)?.[1]],

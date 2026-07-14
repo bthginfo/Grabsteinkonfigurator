@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { Component, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, OrbitControls, RoundedBox, Text, useTexture } from "@react-three/drei";
+import { ContactShadows, Environment, OrbitControls, Preload, RoundedBox, Text, useGLTF, useTexture } from "@react-three/drei";
 import { Download, LoaderCircle } from "lucide-react";
 import {
   BufferGeometry,
+  Box3,
   CatmullRomCurve3,
   CanvasTexture,
   Color,
@@ -13,6 +14,10 @@ import {
   IcosahedronGeometry,
   LinearFilter,
   LineCurve3,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshPhysicalMaterial,
   RepeatWrapping,
   Shape,
   SRGBColorSpace,
@@ -20,6 +25,7 @@ import {
   Vector2,
   Vector3,
 } from "three";
+import { clone as cloneSkinned } from "three/examples/jsm/utils/SkeletonUtils.js";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { MonumentDraft } from "@/lib/config/monument-schema";
 import { cmToMeters, stoneAppearance, type StoneMaterialProps } from "@/lib/preview/stone-appearance";
@@ -427,7 +433,7 @@ function RockStone({ w, h, d, material, materialKey }: { w: number; h: number; d
   );
 }
 
-function StoneModel({ draft }: { draft: MonumentDraft }) {
+function ProceduralStoneModel({ draft }: { draft: MonumentDraft }) {
   const { w, h, d } = cmToMeters(draft);
   const material = stoneAppearance(draft.material, draft.surface);
   const materialKey = draft.material;
@@ -453,6 +459,111 @@ function StoneModel({ draft }: { draft: MonumentDraft }) {
         <RoundedBox args={[w * 1.28, Math.max(0.11, h * 0.13), Math.max(d * 1.8, 0.24)]} radius={radius * 0.7} smoothness={5} position={[0, Math.max(0.055, h * 0.065), 0]} castShadow receiveShadow><StoneMaterial material={material} materialKey={materialKey} /></RoundedBox>
       ) : null}
     </group>
+  );
+}
+
+function CustomStoneModel({ draft }: { draft: MonumentDraft }) {
+  const asset = draft.modelAsset!;
+  const gltf = useGLTF(asset.runtimeUrl);
+  const { w, h, d } = cmToMeters(draft);
+  const appearance = useMemo(
+    () => stoneAppearance(draft.material, draft.surface),
+    [draft.material, draft.surface],
+  );
+  const configurableMaps = useMemo(
+    () => appearance.textureFamily === "granite" || appearance.textureFamily === "slate"
+      ? createGraniteMaps(surfaceColor(appearance), draft.material === "schiefer" ? 913 : 431)
+      : {},
+    [appearance, draft.material],
+  );
+  const finishBump = useMemo(() => createFinishBump(appearance.surfaceKey), [appearance.surfaceKey]);
+  const object = useMemo(() => {
+    const source = cloneSkinned(gltf.scene) as Group;
+    const ownedMaterials: MeshPhysicalMaterial[] = [];
+    if (asset.materialMode === "configurable") {
+      source.traverse((node) => {
+        if (!(node instanceof Mesh)) return;
+        const material = new MeshPhysicalMaterial({
+          color: configurableMaps.map ? "#ffffff" : surfaceColor(appearance),
+          map: configurableMaps.map,
+          bumpMap: finishBump ?? configurableMaps.bumpMap,
+          bumpScale: appearance.surfaceKey === "naturspalt" ? 0.07 : appearance.surfaceKey === "gestockt" ? 0.055 : 0.018,
+          roughness: appearance.roughness,
+          metalness: appearance.metalness,
+          clearcoat: appearance.clearcoat,
+          clearcoatRoughness: appearance.clearcoatRoughness,
+          envMapIntensity: 0.8,
+        });
+        node.material = material;
+        ownedMaterials.push(material);
+        node.castShadow = true;
+        node.receiveShadow = true;
+      });
+    } else {
+      source.traverse((node) => {
+        if (node instanceof Mesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+    }
+
+    const oriented = new Group();
+    oriented.add(source);
+    oriented.rotation.set(...asset.transform.rotationDeg.map(MathUtils.degToRad) as [number, number, number]);
+    oriented.scale.setScalar(asset.transform.uniformScale);
+    oriented.updateMatrixWorld(true);
+    const bounds = new Box3().setFromObject(oriented);
+    const size = bounds.getSize(new Vector3());
+    const center = bounds.getCenter(new Vector3());
+    oriented.position.set(
+      -center.x + asset.transform.offsetCm[0] / 100,
+      -bounds.min.y + asset.transform.offsetCm[1] / 100,
+      -center.z + asset.transform.offsetCm[2] / 100,
+    );
+
+    const normalized = new Group();
+    normalized.add(oriented);
+    normalized.scale.set(
+      w / Math.max(size.x, 0.001),
+      h / Math.max(size.y, 0.001),
+      d / Math.max(size.z, 0.001),
+    );
+    normalized.userData.ownedMaterials = ownedMaterials;
+    return normalized;
+  }, [asset, appearance, configurableMaps, d, finishBump, gltf.scene, h, w]);
+
+  useEffect(() => () => {
+    (object.userData.ownedMaterials as MeshPhysicalMaterial[] | undefined)?.forEach((material) => material.dispose());
+  }, [object]);
+
+  return <primitive object={object} />;
+}
+
+class ModelAssetBoundary extends Component<{ children: ReactNode; fallback: ReactNode; resetKey: string }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidUpdate(previous: Readonly<{ resetKey: string }>) {
+    if (previous.resetKey !== this.props.resetKey && this.state.failed) this.setState({ failed: false });
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
+
+function StoneModel({ draft }: { draft: MonumentDraft }) {
+  if (!draft.modelAsset) return <ProceduralStoneModel draft={draft} />;
+  return (
+    <ModelAssetBoundary resetKey={draft.modelAsset.runtimeUrl} fallback={<ProceduralStoneModel draft={draft} />}>
+      <Suspense fallback={<ProceduralStoneModel draft={draft} />}>
+        <CustomStoneModel draft={draft} />
+      </Suspense>
+    </ModelAssetBoundary>
   );
 }
 
@@ -501,10 +612,12 @@ function Inscription({ draft }: { draft: MonumentDraft }) {
   const name = draft.inscription?.name?.trim() || "Ihre Inschrift";
   const dates = draft.inscription?.dates?.trim();
   const epitaph = draft.inscription?.epitaph?.trim();
-  const book = draft.form === "buch";
-  const low = draft.form === "liegestein" || draft.form === "kissenstein" || book;
-  const cross = draft.form === "kreuz";
-  const maxWidth = cross ? w * 0.25 : draft.form === "herz" ? w * 0.66 : book ? w * 0.4 : w * 0.76;
+  const customSurface = draft.modelAsset?.inscriptionSurface;
+  if (customSurface?.mode === "disabled") return null;
+  const book = !customSurface && draft.form === "buch";
+  const low = customSurface ? customSurface.mode === "inclined" : draft.form === "liegestein" || draft.form === "kissenstein" || book;
+  const cross = !customSurface && draft.form === "kreuz";
+  const maxWidth = customSurface ? w * customSurface.maxWidthRatio : cross ? w * 0.25 : draft.form === "herz" ? w * 0.66 : book ? w * 0.4 : w * 0.76;
   const fontKey = draft.inscription?.font ?? "antiqua";
   const characterWidth = fontKey === "kapitalelchen" ? 0.62 : fontKey === "modern" ? 0.56 : fontKey === "handschrift" ? 0.43 : 0.5;
   const sizeReference = low ? Math.max(d, w * 0.68) : h;
@@ -521,10 +634,14 @@ function Inscription({ draft }: { draft: MonumentDraft }) {
     ? (bookFront + bookBack) / 2 + Math.max(0.035, h * 0.22) + 0.012
     : (frontHeight + backHeight) / 2 + (cushion ? 0.04 : 0) + 0.008;
   const heartLift = draft.form === "herz" ? Math.max(0.09, h * 0.12) - h * 0.055 : 0;
-  const groupPosition: [number, number, number] = low
+  const groupPosition: [number, number, number] = customSurface
+    ? [customSurface.positionRatio[0] * w, customSurface.positionRatio[1] * h, customSurface.positionRatio[2] * d + 0.014]
+    : low
     ? [book ? w * 0.23 : 0, lowTop, 0]
     : [0, (cross ? h * 0.37 : h * 0.56) + heartLift, d / 2 + 0.014];
-  const groupRotation: [number, number, number] = low ? [-Math.PI / 2 + lowAngle, 0, 0] : [0, 0, 0];
+  const groupRotation: [number, number, number] = customSurface
+    ? customSurface.rotationDeg.map(MathUtils.degToRad) as [number, number, number]
+    : low ? [-Math.PI / 2 + lowAngle, 0, 0] : [0, 0, 0];
 
   return (
     <group position={groupPosition} rotation={groupRotation}>
@@ -707,16 +824,18 @@ function BronzeAccessory({ draft }: { draft: MonumentDraft }) {
 
 function CameraRig({ draft }: { draft: MonumentDraft }) {
   const camera = useThree((state) => state.camera);
+  const invalidate = useThree((state) => state.invalidate);
   const { w, h, d } = cmToMeters(draft);
   const plot = plotDimensions(draft);
   useEffect(() => {
     const low = draft.form === "liegestein" || draft.form === "kissenstein" || draft.form === "buch";
     const size = Math.max(w, h, d, plot.width * 0.76, plot.depth * 0.53, 0.62);
-    const distance = Math.max(1.62, size * 2.15);
+    const distance = Math.max(1.82, size * 2.55);
     camera.position.set(distance * 0.72, distance * 0.57, distance * 1.04);
-    camera.lookAt(0, low ? 0.12 : h * 0.43, plot.depth * 0.2);
+    camera.lookAt(0, low ? 0.11 : h * 0.38, plot.depth * 0.2);
     camera.updateProjectionMatrix();
-  }, [camera, w, h, d, plot.width, plot.depth, draft.form]);
+    invalidate();
+  }, [camera, invalidate, w, h, d, plot.width, plot.depth, draft.form]);
   return null;
 }
 
@@ -838,7 +957,7 @@ function Scene({ draft }: { draft: MonumentDraft }) {
       </group>
       {!mountedAccessory ? <BronzeAccessory draft={draft} /> : null}
       <ContactShadows position={[0, 0.006, 0]} opacity={0.5} scale={4} blur={2.7} far={2.8} />
-      <OrbitControls makeDefault target={[0, low ? 0.12 : h * 0.43, plot.depth * 0.2]} enableDamping dampingFactor={0.07} minDistance={Math.max(1.05, Math.max(w, h, d) * 1.25)} maxDistance={8} minPolarAngle={0.38} maxPolarAngle={Math.PI / 2 - 0.035} />
+      <OrbitControls makeDefault target={[0, low ? 0.11 : h * 0.38, plot.depth * 0.2]} enableDamping dampingFactor={0.07} minDistance={Math.max(1.05, Math.max(w, h, d) * 1.25)} maxDistance={8} minPolarAngle={0.38} maxPolarAngle={Math.PI / 2 - 0.035} />
     </>
   );
 }
@@ -866,10 +985,11 @@ export function MonumentPreview({ draft, orderId, embedded = false, hero = false
     <div className={embedded || hero ? "" : "flex flex-col gap-2"}>
       {!embedded && !hero ? <p className="text-sm font-medium text-[#35433c]">3D-Vorschau</p> : null}
       <div id="monument-preview-root" className={`relative w-full overflow-hidden bg-[#dce3dd] ${hero ? "h-[min(68vh,620px)] min-h-112" : embedded ? "h-96" : "h-80 border border-[#d8dfda]"}`}>
-        <Canvas shadows camera={{ position: [1.25, 0.9, 1.45], fov: 32 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false }} dpr={[1, 1.75]}>
+        <Canvas frameloop="demand" performance={{ min: 0.65 }} shadows camera={{ position: [1.25, 0.9, 1.45], fov: 32 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false, powerPreference: "high-performance" }} dpr={[1, 1.5]}>
           <color attach="background" args={["#dce3dd"]} />
           <Environment files="/assets/environment/symmetrical_garden_02_2k.hdr" background blur={0.025} />
           <Suspense fallback={null}><Scene draft={renderedDraft} /><SceneReady onReady={markReady} /></Suspense>
+          <Preload all />
         </Canvas>
         <div aria-live="polite" className={`pointer-events-none absolute inset-0 grid place-items-center bg-[#e8eeea]/28 backdrop-blur-[1px] transition-opacity duration-200 ${updating ? "opacity-100" : "opacity-0"}`}>
           <span className="inline-flex items-center gap-2 rounded-md border border-white/70 bg-white/92 px-3 py-2 text-xs font-semibold text-[#35433c] shadow-lg"><LoaderCircle className="size-4 animate-spin text-[#12644f]" /> 3D-Vorschau wird aktualisiert</span>
