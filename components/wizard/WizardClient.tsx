@@ -3,6 +3,22 @@
 import { useActionState, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useStore } from "zustand/react";
+import {
+  Amphora,
+  Ban,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CircleDot,
+  Cross,
+  Flower2,
+  Lamp,
+  Sparkles,
+  Sprout,
+  TreePine,
+  Wheat,
+  type LucideIcon,
+} from "lucide-react";
 import { MonumentPreview } from "@/components/preview/MonumentPreview";
 import {
   saveDraftConfiguration,
@@ -30,11 +46,11 @@ const STAGES = [
 ] as const;
 
 const GRAVE_TYPES = [
-  { value: "einzelgrab", label: "Einzelgrab", description: "Klassisches Grabmal für eine Grabstelle" },
-  { value: "urnengrab", label: "Urnengrab", description: "Kompakte Maße für eine Urnengrabstätte" },
-  { value: "familiengrab", label: "Familiengrab", description: "Breitere Anlage für mehrere Grabstellen" },
-  { value: "kindergrab", label: "Kindergrab", description: "Behutsame, kleinere Gestaltung" },
-  { value: "gedenkstein", label: "Gedenkstein", description: "Freistehender Erinnerungsstein" },
+  { value: "einzelgrab", label: "Erdgrab kompakt", description: "Eine klassische Grabstelle mit länglicher Pflanzfläche", footprint: "ca. 90 × 200 cm", short: "1 Grabstelle" },
+  { value: "urnengrab", label: "Urnengrab", description: "Kompakte, meist quadratische Anlage für eine oder mehrere Urnen", footprint: "ca. 80 × 80 cm", short: "Kompakt" },
+  { value: "familiengrab", label: "Doppel- / Familiengrab", description: "Breite Anlage mit Reserve für mehrere Namen", footprint: "ca. 180 × 200 cm", short: "Mehrstellig" },
+  { value: "kindergrab", label: "Kindergrab", description: "Kleinere, behutsam proportionierte Grabstelle", footprint: "ca. 80 × 120 cm", short: "Kleine Anlage" },
+  { value: "gedenkstein", label: "Freier Gedenkort", description: "Stein ohne klassische eingefasste Grabfläche", footprint: "individuell", short: "Ohne Grabfeld" },
 ] as const;
 
 const FORMS = [
@@ -58,11 +74,11 @@ const FORM_RECOMMENDATIONS: Record<Grabtyp, readonly FormTyp[]> = {
 };
 
 const GRAVE_TYPE_NOTES: Record<Grabtyp, string> = {
-  einzelgrab: "Typisch sind aufrechte Hochsteine um 80-100 cm Höhe und 40-60 cm Breite.",
-  urnengrab: "Kompakte Stelen, Liege- und Kissensteine nutzen die kleinere Grabfläche sinnvoll.",
-  familiengrab: "Breitsteine und Sockelanlagen schaffen Platz für mehrere Namen und Grabstellen.",
-  kindergrab: "Kleinere Herz-, Buch- und Kissenformen wirken maßstäblich und zurückhaltend.",
-  gedenkstein: "Findling, Stele und freiere Anlagen eignen sich für Orte außerhalb klassischer Grabfelder.",
+  einzelgrab: "Das längliche Anlagenprofil passt zu stehenden Grabmalen und einer bepflanzten Fläche.",
+  urnengrab: "Die kompakte Grundfläche funktioniert besonders gut mit Kissenstein, Platte, Buch oder kleiner Stele.",
+  familiengrab: "Die breitere Front schafft Raum für mehrere Namen, einen Breitstein oder eine Sockelanlage.",
+  kindergrab: "Reduzierte Maße und weichere Formen halten Stein und Grabfläche in einem behutsamen Maßstab.",
+  gedenkstein: "Dieses Profil zeigt nur den Erinnerungsstein in einer freien Grünfläche, ohne klassische Grabeinfassung.",
 };
 
 function recommendedForms(grabtyp?: Grabtyp) {
@@ -325,34 +341,37 @@ function WizardInner({
 
   return (
     <div className="w-full min-w-0">
-      <div className="mb-5 lg:hidden">
+      <div className="mb-4 lg:hidden">
         <StageProgress current={step} />
       </div>
-      <div className="grid w-full min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(390px,0.82fr)] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_520px]">
-      <section className={`${step === 5 ? "order-1" : "order-2"} min-w-0 bg-white p-5 sm:p-8 lg:order-1 lg:border lg:border-[#d9ddda] xl:p-10`}>
+      <div className="grid w-full min-w-0 items-start gap-5 lg:grid-cols-[minmax(480px,0.9fr)_minmax(520px,1.1fr)] xl:grid-cols-[minmax(540px,0.82fr)_minmax(620px,1.18fr)]">
+      <section className={`${step === 5 ? "order-1" : "order-2"} min-w-0 rounded-lg border border-[#dce2de] bg-white p-5 shadow-[0_1px_2px_rgba(20,35,27,0.04)] sm:p-7 lg:order-1 xl:p-8`}>
         <div className="hidden lg:block">
           <StageProgress current={step} />
         </div>
 
-        <div className="mt-8 lg:mt-10">
+        <div className="mt-7">
           {step === 1 ? (
             <StageShell
-              eyebrow="Grundform"
-              title="Welches Grabmal möchten Sie gestalten?"
-              description="Wählen Sie zuerst die Grabart und anschließend die gewünschte Form. Beides kann später geändert werden."
+              eyebrow="Anlagenprofil"
+              title="Welche Grabstelle soll gestaltet werden?"
+              description="Das Profil legt Grundfläche, Maßstab und passende Grabmalformen fest. Reihen- oder Wahlgrab werden später mit dem Friedhof geprüft."
             >
-              <FieldGroup legend="Grabart">
-                <ChoiceGrid
+              <FieldGroup legend="Grundfläche und Nutzung">
+                <GraveProfileGrid
                   options={GRAVE_TYPES}
                   value={draft.grabtyp}
                   onChange={(value) => selectGraveType(value as Grabtyp)}
                 />
               </FieldGroup>
-              <FieldGroup legend="Form">
+              <FieldGroup legend="Passende Grabmalform">
                 {draft.grabtyp ? (
                   <>
-                    <p className="border-l-2 border-[#17624b] bg-[#f4f8f6] px-4 py-3 text-xs leading-5 text-[#56615b]">
+                    <p className="flex gap-3 rounded-md bg-[#f0f5f2] px-4 py-3 text-xs leading-5 text-[#56615b]">
+                      <CircleDot className="mt-0.5 size-4 shrink-0 text-[#17624b]" />
+                      <span>
                       {GRAVE_TYPE_NOTES[draft.grabtyp]} Die verbindlichen Maße richten sich nach der örtlichen Friedhofsordnung.
+                      </span>
                     </p>
                     <ChoiceGrid
                       options={availableForms}
@@ -500,25 +519,19 @@ function WizardInner({
                   onChange={(ornaments) => patchDraft({ ornaments })}
                 />
               </FieldGroup>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <FieldGroup legend="Bronze">
-                  <SelectField
-                    label="Bronze"
-                    value={draft.bronze ?? "keins"}
-                    options={BRONZE}
-                    onChange={(value) => patchDraft({ bronze: value as MonumentDraft["bronze"] })}
-                  />
-                </FieldGroup>
-                <FieldGroup legend="Einfassung">
-                  <SelectField
-                    label="Einfassung"
-                    value={draft.enclosure ?? "keine"}
-                    options={ENCLOSURES}
-                    onChange={(value) => patchDraft({ enclosure: value as MonumentDraft["enclosure"] })}
-                  />
-                </FieldGroup>
-              </div>
-              <label className="flex min-h-16 cursor-pointer items-start gap-3 border-t border-[#d9ddda] pt-5 text-sm">
+              <FieldGroup legend="Bronzezubehör">
+                <AccessoryGrid
+                  value={draft.bronze ?? "keins"}
+                  onChange={(value) => patchDraft({ bronze: value as MonumentDraft["bronze"] })}
+                />
+              </FieldGroup>
+              <FieldGroup legend="Gestaltung der Grabfläche">
+                <EnclosureGrid
+                  value={draft.enclosure ?? "keine"}
+                  onChange={(value) => patchDraft({ enclosure: value as MonumentDraft["enclosure"] })}
+                />
+              </FieldGroup>
+              <label className="flex min-h-16 cursor-pointer items-start gap-3 rounded-md border border-[#d9ddda] bg-[#f8faf9] p-4 text-sm">
                 <input
                   type="checkbox"
                   className="mt-0.5 size-5 accent-[#17624b]"
@@ -598,7 +611,7 @@ function WizardInner({
             disabled={step === 1 || saving}
             className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[#626a65] hover:text-[#17624b] disabled:invisible"
           >
-            <span aria-hidden="true" className="mr-2">←</span> Zurück
+            <ChevronLeft className="mr-1.5 size-4" /> Zurück
           </button>
           {step < 5 ? (
             <button
@@ -607,20 +620,20 @@ function WizardInner({
               disabled={saving}
               className="inline-flex min-h-12 items-center bg-[#17624b] px-6 text-sm font-semibold text-white transition hover:bg-[#104736] active:translate-y-px disabled:cursor-wait disabled:opacity-55"
             >
-              {saving ? "Wird gespeichert..." : "Weiter"} {!saving ? <span aria-hidden="true" className="ml-3">→</span> : null}
+              {saving ? "Wird gespeichert..." : "Weiter"} {!saving ? <ChevronRight className="ml-2 size-4" /> : null}
             </button>
           ) : null}
         </div>
       </section>
 
       <aside className={`${step === 5 ? "order-2" : "order-1"} min-w-0 lg:sticky lg:top-6 lg:order-2`}>
-        <div className="atelier-preview atelier-shadow overflow-hidden border border-[#cdd2ce] bg-white">
-          <div className="flex min-h-12 items-center justify-between gap-4 border-b border-[#d9ddda] bg-white px-4">
+        <div className="atelier-preview overflow-hidden rounded-lg border border-[#cfd7d2] bg-white shadow-[0_18px_55px_rgba(25,38,31,0.12)]">
+          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#d9ddda] bg-white px-4 sm:px-5">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#17624b]">Live-Entwurf</p>
-              <p className="mt-0.5 text-xs text-[#626a65]">{FORMS.find((item) => item.value === draft.form)?.label ?? "Form wählen"} · {MATERIALS.find((item) => item.value === draft.material)?.label ?? "Material wählen"}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#17624b]">3D-Konfiguration</p>
+              <p className="mt-0.5 text-xs font-medium text-[#4f5752]">{FORMS.find((item) => item.value === draft.form)?.label ?? "Form wählen"} · {MATERIALS.find((item) => item.value === draft.material)?.label ?? "Material wählen"}</p>
             </div>
-            <span className="flex items-center gap-2 text-[11px] text-[#747b76]"><span className="size-1.5 rounded-full bg-[#17624b]" />Aktuell</span>
+            <span className="flex items-center gap-2 text-[11px] text-[#747b76]"><span className="size-1.5 rounded-full bg-[#23a36d]" />Live</span>
           </div>
           <MonumentPreview draft={draft} orderId={orderId} embedded />
           <PricePanel price={price} currency={catalog.currency} taxLabel={catalog.taxLabel} />
@@ -636,38 +649,35 @@ function WizardInner({
 }
 
 function StageProgress({ current }: { current: number }) {
+  const progress = (current / STAGES.length) * 100;
   return (
-    <div className="border-b border-[#d9ddda] pb-5">
-      <div className="mb-3 flex items-center justify-between sm:hidden">
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-[#17624b]">Schritt {current} von 5</span>
-        <span className="font-display text-lg text-[#202421]">{STAGES[current - 1]?.label}</span>
+    <div className="border-b border-[#e1e5e2] pb-5">
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <span className="text-xs font-semibold text-[#17624b]">Schritt {current} von {STAGES.length}</span>
+        <span className="text-xs font-medium text-[#4f5752]">{STAGES[current - 1]?.label}</span>
       </div>
-    <ol className="grid grid-cols-5" aria-label="Fortschritt">
-      {STAGES.map((stage) => (
-        <li key={stage.number} className="relative">
-          <div className={`absolute left-1/2 top-3 h-px w-full ${stage.number < current ? "bg-[#17624b]" : "bg-[#d9ddda]"} ${stage.number === 5 ? "hidden" : ""}`} />
-          <div className="relative z-10 flex flex-col items-center sm:items-start">
-            <span className={`flex size-6 items-center justify-center rounded-full border text-[10px] font-semibold ${stage.number < current ? "border-[#17624b] bg-[#17624b] text-white" : stage.number === current ? "border-[#17624b] bg-white text-[#17624b] ring-4 ring-[#dbe9e3]" : "border-[#cdd2ce] bg-[#f4f5f3] text-[#747b76]"}`}>
-              {stage.number < current ? "✓" : stage.number}
-            </span>
-            <span className={`mt-3 hidden text-xs sm:block ${stage.number === current ? "font-semibold text-[#202421]" : "text-[#747b76]"}`}>
-              {stage.label}
-            </span>
-          </div>
-        </li>
-      ))}
-    </ol>
+      <div className="h-1 overflow-hidden rounded-full bg-[#e4e8e5]">
+        <div className="h-full rounded-full bg-[#17624b] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+      </div>
+      <ol className="mt-3 hidden grid-cols-5 gap-2 sm:grid" aria-label="Fortschritt">
+        {STAGES.map((stage) => (
+          <li key={stage.number} className={`flex items-center gap-1.5 text-[11px] ${stage.number === current ? "font-semibold text-[#202421]" : stage.number < current ? "text-[#17624b]" : "text-[#858c87]"}`}>
+            {stage.number < current ? <Check className="size-3.5" /> : <span className="tabular-nums">{stage.number}</span>}
+            <span className="truncate">{stage.label}</span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
 
 function StageShell({ eyebrow, title, description, children }: { eyebrow: string; title: string; description: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-7">
       <header>
-        <p className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#17624b]"><span className="h-px w-7 bg-[#17624b]" />{eyebrow}</p>
-        <h1 className="font-display mt-3 text-3xl leading-tight text-[#202421] sm:text-4xl">{title}</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-[#626a65]">{description}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#17624b]">{eyebrow}</p>
+        <h1 className="mt-2 text-2xl font-semibold leading-tight text-[#18201c] sm:text-[1.75rem]">{title}</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#65706a]">{description}</p>
       </header>
       {children}
     </div>
@@ -685,9 +695,31 @@ function FieldGroup({ legend, children }: { legend: string; children: React.Reac
 
 type ChoiceOption = { value: string; label: string; description: string; swatch?: string; badge?: string };
 
-function ChoiceGrid({ options, value, onChange, compact = false }: { options: readonly ChoiceOption[]; value?: string; onChange: (value: string) => void; compact?: boolean }) {
+type GraveProfileOption = {
+  value: string;
+  label: string;
+  description: string;
+  footprint: string;
+  short: string;
+};
+
+function GraveProfileVisual({ value, selected }: { value: string; selected: boolean }) {
+  const wide = value === "familiengrab";
+  const compact = value === "urnengrab";
+  const child = value === "kindergrab";
+  const memorial = value === "gedenkstein";
   return (
-    <div className={`grid gap-2.5 ${compact ? "sm:grid-cols-2" : "sm:grid-cols-2"}`}>
+    <span className={`relative flex h-16 w-20 shrink-0 items-end justify-center overflow-hidden rounded-md border ${selected ? "border-[#77a895] bg-[#dfeee7]" : "border-[#d7ddd9] bg-[#eef1ef]"}`}>
+      <span className="absolute inset-x-2 bottom-1.5 top-5 rounded-[2px] bg-[#73806f] opacity-80" />
+      {!memorial ? <span className={`absolute inset-x-2 bottom-1.5 top-5 rounded-[2px] border-2 border-[#a5aaa4] ${compact ? "inset-x-4 top-7" : child ? "inset-x-3 top-6" : ""}`} /> : null}
+      <span className={`relative mb-7 block rounded-t-[3px] bg-[#424946] ${wide ? "h-5 w-11" : compact ? "h-6 w-5" : child ? "h-6 w-5" : memorial ? "h-8 w-6 -rotate-3" : "h-7 w-6"}`} />
+    </span>
+  );
+}
+
+function GraveProfileGrid({ options, value, onChange }: { options: readonly GraveProfileOption[]; value?: string; onChange: (value: string) => void }) {
+  return (
+    <div className="grid gap-2.5">
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -696,13 +728,43 @@ function ChoiceGrid({ options, value, onChange, compact = false }: { options: re
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
-            className={`group relative flex min-h-24 items-center gap-4 rounded-[6px] border px-4 py-3 text-left transition ${selected ? "border-[#17624b] bg-[#edf6f2] shadow-[inset_3px_0_0_#17624b]" : "border-[#d9ddda] bg-white hover:border-[#9ca59f] hover:bg-[#f8f9f7]"}`}
+            className={`relative flex min-h-24 items-center gap-4 rounded-lg border p-3 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8] hover:bg-[#fafbfa]"}`}
           >
-            {option.swatch ? <span className="size-11 shrink-0 rounded-[3px] border border-black/15 shadow-inner" style={{ backgroundColor: option.swatch }} /> : <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${selected ? "border-[#17624b] bg-[#17624b] text-white" : "border-[#c7ccc8] bg-[#f4f5f3] text-[#747b76]"}`}>{selected ? "✓" : ""}</span>}
+            <GraveProfileVisual value={option.value} selected={selected} />
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-sm font-semibold text-[#202722]">{option.label}</span>
+                <span className="rounded bg-[#e9eeeb] px-1.5 py-0.5 text-[10px] font-medium text-[#5d6761]">{option.short}</span>
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-[#65706a]">{option.description}</span>
+              <span className="mt-1 block text-[11px] font-medium text-[#17624b]">{option.footprint}</span>
+            </span>
+            {selected ? <Check className="absolute right-3 top-3 size-4 text-[#17624b]" /> : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChoiceGrid({ options, value, onChange, compact = false }: { options: readonly ChoiceOption[]; value?: string; onChange: (value: string) => void; compact?: boolean }) {
+  return (
+    <div className="grid gap-2.5 sm:grid-cols-2">
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(option.value)}
+            className={`group relative flex ${compact ? "min-h-20" : "min-h-24"} items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8] hover:bg-[#fafbfa]"}`}
+          >
+            {option.swatch ? <span className="size-10 shrink-0 rounded border border-black/15 shadow-inner" style={{ backgroundColor: option.swatch }} /> : <span className={`flex size-7 shrink-0 items-center justify-center rounded-md border ${selected ? "border-[#17624b] bg-[#17624b] text-white" : "border-[#cbd2cd] bg-[#f5f7f6] text-transparent"}`}><Check className="size-4" /></span>}
             <span className="min-w-0">
               <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#202421]">
                 {option.label}
-                {option.badge ? <span className="rounded-[3px] bg-[#dbe9e3] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-[#17624b]">{option.badge}</span> : null}
+                {option.badge ? <span className="rounded bg-[#dbe9e3] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#17624b]">{option.badge}</span> : null}
               </span>
               <span className="mt-1 block text-xs leading-5 text-[#626a65]">{option.description}</span>
             </span>
@@ -785,10 +847,18 @@ function SurfaceGrid({ options, value, onChange }: { options: readonly SurfaceOp
 
 function ToggleGrid({ options, selected, onChange }: { options: readonly (readonly [string, string])[]; selected: string[]; onChange: (selected: string[]) => void }) {
   const selectedSet = new Set(selected);
+  const icons: Record<string, LucideIcon> = {
+    rose: Flower2,
+    lilie: Sprout,
+    aere: Wheat,
+    kreuz_motiv: Cross,
+    baum: TreePine,
+  };
   return (
-    <div className="grid gap-2.5 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
       {options.map(([value, label]) => {
         const active = selectedSet.has(value);
+        const Icon = icons[value] ?? Sparkles;
         return (
           <button
             key={value}
@@ -799,10 +869,85 @@ function ToggleGrid({ options, selected, onChange }: { options: readonly (readon
               if (active) next.delete(value); else next.add(value);
               onChange([...next]);
             }}
-            className={`flex min-h-14 items-center gap-3 rounded-[5px] border px-4 py-3 text-left text-sm transition ${active ? "border-[#17624b] bg-[#edf6f2] font-semibold text-[#174b3b]" : "border-[#d9ddda] bg-white text-[#4f5752] hover:border-[#9ca59f]"}`}
+            className={`relative flex min-h-24 flex-col items-start justify-between rounded-lg border p-3 text-left text-sm transition ${active ? "border-[#17624b] bg-[#f0f7f4] font-semibold text-[#174b3b] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white text-[#4f5752] hover:border-[#a4afa8]"}`}
           >
-            <span className={`flex size-5 items-center justify-center rounded-[3px] border ${active ? "border-[#17624b] bg-[#17624b] text-xs text-white" : "border-[#bfc6c1] bg-[#f8f9f7]"}`}>{active ? "✓" : ""}</span>
-            {label}
+            <Icon className={`size-6 ${active ? "text-[#17624b]" : "text-[#747d77]"}`} strokeWidth={1.6} />
+            <span>{label}</span>
+            {active ? <Check className="absolute right-2.5 top-2.5 size-4 text-[#17624b]" /> : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+const ACCESSORY_ICONS: Record<string, LucideIcon> = {
+  keins: Ban,
+  kreuz_standard: Cross,
+  kreuz_premium: Cross,
+  vase: Amphora,
+  laterne: Lamp,
+  weihwasserbecken: CircleDot,
+  sonder: Sparkles,
+};
+
+function AccessoryGrid({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+      {BRONZE.map(([optionValue, label]) => {
+        const selected = value === optionValue;
+        const Icon = ACCESSORY_ICONS[optionValue] ?? Sparkles;
+        return (
+          <button
+            key={optionValue}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(optionValue)}
+            className={`relative flex min-h-24 flex-col items-start justify-between rounded-lg border p-3 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8]"}`}
+          >
+            <Icon className={`size-6 ${selected ? "text-[#9a7138]" : "text-[#747d77]"}`} strokeWidth={1.6} />
+            <span className="pr-4 text-xs font-medium leading-4 text-[#343c37]">{label}</span>
+            {selected ? <Check className="absolute right-2.5 top-2.5 size-4 text-[#17624b]" /> : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function EnclosureVisual({ value }: { value: string }) {
+  const border = value === "granit_4seitig";
+  const slab = value === "abdeckplatte";
+  const gravel = value === "kieselpflaster";
+  const planted = value === "pflanzflaeche";
+  return (
+    <span className={`relative block h-14 w-full overflow-hidden rounded-md border ${border ? "border-[#777e79] bg-[#5f665f]" : "border-[#d6dcd8] bg-[#778271]"}`}>
+      {border ? <span className="absolute inset-1.5 border-4 border-[#b1b4af] bg-[#5e6259]" /> : null}
+      {slab ? <><span className="absolute inset-1.5 bg-[#a6aaa6]" /><span className="absolute inset-y-1.5 left-1/2 w-px bg-[#777c78]" /></> : null}
+      {gravel ? <span className="absolute inset-1.5 bg-[radial-gradient(circle,#d9d4c8_1.5px,transparent_2px)] bg-[size:8px_8px] bg-[#8b8d86]" /> : null}
+      {planted ? <span className="absolute inset-1.5 bg-[#4f4b3f]"><Sprout className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#a7b889]" /></span> : null}
+      {value === "keine" ? <span className="absolute inset-x-4 bottom-2 top-3 bg-[#59574c]" /> : null}
+      <span className="absolute left-1/2 top-0 h-4 w-4 -translate-x-1/2 rounded-t-sm bg-[#343a36]" />
+    </span>
+  );
+}
+
+function EnclosureGrid({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+      {ENCLOSURES.map(([optionValue, label]) => {
+        const selected = value === optionValue;
+        return (
+          <button
+            key={optionValue}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => onChange(optionValue)}
+            className={`relative flex min-h-28 flex-col gap-2 rounded-lg border p-2.5 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8]"}`}
+          >
+            <EnclosureVisual value={optionValue} />
+            <span className="text-xs font-medium leading-4 text-[#343c37]">{label}</span>
+            {selected ? <Check className="absolute right-2 top-2 size-4 rounded bg-white/85 p-0.5 text-[#17624b]" /> : null}
           </button>
         );
       })}
@@ -878,7 +1023,7 @@ function PricePanel({ price, currency, taxLabel }: { price: ReturnType<typeof ca
       <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#747b76]">Richtpreis inkl. USt</p>
-          <p className="font-display mt-1 text-3xl text-[#202421]">{formatter.format(price.totalGross)}</p>
+          <p className="mt-1 text-3xl font-semibold tracking-normal text-[#202421] tabular-nums">{formatter.format(price.totalGross)}</p>
         </div>
         <span className="max-w-full text-xs text-[#747b76] sm:text-right">{taxLabel}</span>
       </div>

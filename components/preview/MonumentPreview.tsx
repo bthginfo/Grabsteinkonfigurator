@@ -2,7 +2,8 @@
 
 import { Suspense, useCallback, useEffect, useMemo } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, Lightformer, OrbitControls, RoundedBox, Text, useTexture } from "@react-three/drei";
+import { ContactShadows, Environment, Lightformer, Line, OrbitControls, RoundedBox, Text, useTexture } from "@react-three/drei";
+import { Download } from "lucide-react";
 import {
   BufferGeometry,
   CanvasTexture,
@@ -476,7 +477,7 @@ function InscriptionLine({ children, y, size, draft, maxWidth, weight = 0 }: { c
       castShadow
     >
       {rendered}
-      <meshPhysicalMaterial color={style.color} metalness={style.metalness} roughness={style.roughness} clearcoat={style.metalness > 0.5 ? 0.25 : 0} />
+      <meshPhysicalMaterial color={style.color} emissive={style.color} emissiveIntensity={style.metalness > 0.5 ? 0.05 : 0.12} metalness={style.metalness} roughness={style.roughness} clearcoat={style.metalness > 0.5 ? 0.25 : 0} />
     </Text>
   );
 }
@@ -520,70 +521,261 @@ function Inscription({ draft }: { draft: MonumentDraft }) {
   );
 }
 
-function CameraRig({ draft }: { draft: MonumentDraft }) {
-  const camera = useThree((state) => state.camera);
-  const { w, h, d } = cmToMeters(draft);
-  useEffect(() => {
-    const plotWidth = draft.grabtyp === "familiengrab" ? 1.75 : draft.grabtyp === "urnengrab" ? 0.82 : 0.95;
-    const size = Math.max(w, h, d, plotWidth * 0.72, 0.58);
-    const distance = Math.max(1.35, size * 2.05);
-    camera.position.set(distance * 0.68, distance * 0.53, distance);
-    camera.lookAt(0, h * 0.46, 0);
-    camera.updateProjectionMatrix();
-  }, [camera, w, h, d, draft.grabtyp]);
-  return null;
+type MotifPath = Array<[number, number, number]>;
+
+function motifPaths(kind: string): MotifPath[] {
+  if (kind === "kreuz_motiv") {
+    return [
+      [[0, -0.5, 0], [0, 0.52, 0]],
+      [[-0.3, 0.2, 0], [0.3, 0.2, 0]],
+    ];
+  }
+  if (kind === "baum") {
+    const crown = Array.from({ length: 17 }, (_, index) => {
+      const angle = (index / 16) * Math.PI * 2;
+      return [Math.cos(angle) * 0.37, Math.sin(angle) * 0.3 + 0.18, 0] as [number, number, number];
+    });
+    return [
+      [[0, -0.5, 0], [0, 0.1, 0]],
+      [[0, -0.05, 0], [-0.24, 0.2, 0]],
+      [[0, 0.02, 0], [0.27, 0.28, 0]],
+      crown,
+    ];
+  }
+  if (kind === "aere") {
+    const paths: MotifPath[] = [[[0, -0.52, 0], [0, 0.5, 0]]];
+    for (let index = 0; index < 5; index += 1) {
+      const y = -0.18 + index * 0.14;
+      paths.push([[0, y, 0], [-0.24, y + 0.13, 0]], [[0, y + 0.04, 0], [0.24, y + 0.17, 0]]);
+    }
+    return paths;
+  }
+  if (kind === "lilie") {
+    return [
+      [[0, -0.5, 0], [0, 0.12, 0]],
+      [[0, 0.1, 0], [-0.34, 0.42, 0], [-0.08, 0.34, 0], [0, 0.12, 0]],
+      [[0, 0.1, 0], [0.34, 0.42, 0], [0.08, 0.34, 0], [0, 0.12, 0]],
+      [[0, 0.12, 0], [0, 0.52, 0]],
+      [[0, -0.1, 0], [-0.26, 0.02, 0]],
+    ];
+  }
+  const petals: MotifPath[] = [];
+  for (let index = 0; index < 6; index += 1) {
+    const a = (index / 6) * Math.PI * 2;
+    petals.push([[0, 0.2, 0], [Math.cos(a) * 0.3, Math.sin(a) * 0.3 + 0.2, 0]]);
+  }
+  return [
+    [[0, -0.5, 0], [0, 0.2, 0]],
+    [[0, -0.15, 0], [-0.24, -0.02, 0]],
+    ...petals,
+  ];
 }
 
-function GraveContext({ draft }: { draft: MonumentDraft }) {
-  if (draft.grabtyp === "gedenkstein") {
-    return (
-      <mesh position={[0, 0.012, 0.2]} receiveShadow>
-        <cylinderGeometry args={[0.55, 0.58, 0.024, 48]} />
-        <meshStandardMaterial color="#777a73" roughness={0.95} />
-      </mesh>
-    );
-  }
-  const plot = draft.grabtyp === "familiengrab"
-    ? { width: 1.75, depth: 1.65 }
-    : draft.grabtyp === "urnengrab"
-      ? { width: 0.82, depth: 0.78 }
-      : draft.grabtyp === "kindergrab"
-        ? { width: 0.82, depth: 1.05 }
-        : { width: 0.96, depth: 1.55 };
-  const border = 0.055;
-  const centerZ = plot.depth / 2 - 0.04;
+function MotifGlyph({ kind, color }: { kind: string; color: string }) {
   return (
     <group>
-      <mesh position={[0, 0.008, centerZ]} receiveShadow>
-        <boxGeometry args={[plot.width, 0.016, plot.depth]} />
-        <meshStandardMaterial color={draft.grabtyp === "urnengrab" ? "#68675e" : "#57574f"} roughness={1} />
-      </mesh>
-      <mesh position={[-plot.width / 2, 0.026, centerZ]} receiveShadow><boxGeometry args={[border, 0.052, plot.depth + border]} /><meshStandardMaterial color="#92938d" roughness={0.82} /></mesh>
-      <mesh position={[plot.width / 2, 0.026, centerZ]} receiveShadow><boxGeometry args={[border, 0.052, plot.depth + border]} /><meshStandardMaterial color="#92938d" roughness={0.82} /></mesh>
-      <mesh position={[0, 0.026, plot.depth - 0.04]} receiveShadow><boxGeometry args={[plot.width + border, 0.052, border]} /><meshStandardMaterial color="#92938d" roughness={0.82} /></mesh>
+      {motifPaths(kind).map((points, index) => (
+        <Line key={`${kind}-${index}`} points={points} color={color} lineWidth={1.35} />
+      ))}
     </group>
   );
 }
 
-function Scene({ draft }: { draft: MonumentDraft }) {
+function Motifs({ draft }: { draft: MonumentDraft }) {
+  const motifs = draft.ornaments ?? [];
+  const { w, h, d } = cmToMeters(draft);
+  if (!motifs.length || draft.form === "kreuz") return null;
+  const book = draft.form === "buch";
+  const low = draft.form === "liegestein" || draft.form === "kissenstein" || book;
+  const lowDepth = Math.max(d, w * 0.68);
+  const cushion = draft.form === "kissenstein";
+  const frontHeight = cushion ? Math.max(0.075, h * 0.42) : Math.max(0.055, h * 0.72);
+  const backHeight = cushion ? Math.max(0.16, h) : Math.max(frontHeight + 0.018, h);
+  const bookFront = Math.max(0.065, h * 0.36);
+  const bookBack = Math.max(0.12, h * 0.68);
+  const angle = Math.atan2((book ? bookBack : backHeight) - (book ? bookFront : frontHeight), lowDepth);
+  const top = book
+    ? (bookFront + bookBack) / 2 + Math.max(0.035, h * 0.22) + 0.014
+    : (frontHeight + backHeight) / 2 + (cushion ? 0.04 : 0) + 0.01;
+  const scale = low ? Math.min(w, lowDepth) * 0.115 : Math.min(w, h) * 0.13;
+  const style = inscriptionStyle(draft.engravingFinish, draft.material, draft.inscriptionColor);
+  const position: [number, number, number] = low
+    ? [book ? -w * 0.24 : 0, top, 0]
+    : [0, h * 0.25, d / 2 + 0.018];
+  const rotation: [number, number, number] = low ? [-Math.PI / 2 + angle, 0, 0] : [0, 0, 0];
+  const visible = motifs.slice(0, 5);
+  return (
+    <group position={position} rotation={rotation}>
+      {visible.map((kind, index) => (
+        <group key={kind} position={[(index - (visible.length - 1) / 2) * scale * 1.35, 0, 0.002]} scale={scale}>
+          <MotifGlyph kind={kind} color={style.color} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function plotDimensions(draft: MonumentDraft) {
+  if (draft.grabtyp === "familiengrab") return { width: 1.75, depth: 1.72 };
+  if (draft.grabtyp === "urnengrab") return { width: 0.82, depth: 0.82 };
+  if (draft.grabtyp === "kindergrab") return { width: 0.82, depth: 1.12 };
+  if (draft.grabtyp === "gedenkstein") return { width: 1.1, depth: 1.05 };
+  return { width: 0.96, depth: 1.62 };
+}
+
+function MountedBronzeCross({ draft, premium }: { draft: MonumentDraft; premium: boolean }) {
   const { w, h, d } = cmToMeters(draft);
   const low = draft.form === "liegestein" || draft.form === "kissenstein" || draft.form === "buch";
+  if (low || draft.form === "kreuz") return null;
+  const size = Math.min(w, h) * (premium ? 0.3 : 0.23);
+  return (
+    <group position={[w * 0.27, h * 0.72, d / 2 + 0.024]}>
+      <mesh castShadow><boxGeometry args={[size * 0.18, size, 0.012]} /><meshPhysicalMaterial color="#9d7440" metalness={0.88} roughness={0.24} clearcoat={0.25} /></mesh>
+      <mesh position={[0, size * 0.15, 0]} castShadow><boxGeometry args={[size * 0.62, size * 0.17, 0.013]} /><meshPhysicalMaterial color="#9d7440" metalness={0.88} roughness={0.24} clearcoat={0.25} /></mesh>
+    </group>
+  );
+}
+
+function BronzeAccessory({ draft }: { draft: MonumentDraft }) {
+  const accessory = draft.bronze;
+  if (!accessory || accessory === "keins") return null;
+  if (accessory === "kreuz_standard" || accessory === "kreuz_premium") {
+    return <MountedBronzeCross draft={draft} premium={accessory === "kreuz_premium"} />;
+  }
+  const plot = plotDimensions(draft);
+  const x = plot.width * 0.31;
+  const z = plot.depth * 0.68;
+  if (accessory === "vase") {
+    return <group position={[x, 0, z]}><mesh position={[0, 0.09, 0]} castShadow><cylinderGeometry args={[0.055, 0.04, 0.18, 24]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh><mesh position={[0, 0.185, 0]}><torusGeometry args={[0.052, 0.008, 8, 24]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh></group>;
+  }
+  if (accessory === "laterne") {
+    return <group position={[x, 0, z]}><mesh position={[0, 0.025, 0]} castShadow><boxGeometry args={[0.13, 0.05, 0.13]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh><mesh position={[0, 0.14, 0]} castShadow><boxGeometry args={[0.105, 0.18, 0.105]} /><meshPhysicalMaterial color="#c8b884" transparent opacity={0.62} roughness={0.18} /></mesh><mesh position={[0, 0.255, 0]} castShadow><coneGeometry args={[0.1, 0.06, 4]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh></group>;
+  }
+  if (accessory === "weihwasserbecken") {
+    return <group position={[x, 0, z]}><mesh position={[0, 0.055, 0]} castShadow><cylinderGeometry args={[0.1, 0.075, 0.11, 28]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh><mesh position={[0, 0.112, 0]}><torusGeometry args={[0.085, 0.012, 8, 28]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh></group>;
+  }
+  return <mesh position={[x, 0.055, z]} rotation={[-0.18, 0, 0]} castShadow><boxGeometry args={[0.18, 0.1, 0.025]} /><meshPhysicalMaterial color="#876337" metalness={0.83} roughness={0.3} clearcoat={0.18} /></mesh>;
+}
+
+function CameraRig({ draft }: { draft: MonumentDraft }) {
+  const camera = useThree((state) => state.camera);
+  const { w, h, d } = cmToMeters(draft);
+  const plot = plotDimensions(draft);
+  useEffect(() => {
+    const low = draft.form === "liegestein" || draft.form === "kissenstein" || draft.form === "buch";
+    const size = Math.max(w, h, d, plot.width * 0.76, plot.depth * 0.53, 0.62);
+    const distance = Math.max(1.62, size * 2.15);
+    camera.position.set(distance * 0.72, distance * 0.57, distance * 1.04);
+    camera.lookAt(0, low ? 0.12 : h * 0.43, plot.depth * 0.2);
+    camera.updateProjectionMatrix();
+  }, [camera, w, h, d, plot.width, plot.depth, draft.form]);
+  return null;
+}
+
+function BorderStone({ draft, position, size }: { draft: MonumentDraft; position: [number, number, number]; size: [number, number, number] }) {
+  const appearance = stoneAppearance(draft.material, draft.surface);
+  return <mesh position={position} castShadow receiveShadow><boxGeometry args={size} /><StoneMaterial material={appearance} /></mesh>;
+}
+
+function PebbleBed({ width, depth, centerZ }: { width: number; depth: number; centerZ: number }) {
+  const pebbles = useMemo(() => Array.from({ length: 135 }, (_, index) => {
+    const column = index % 15;
+    const row = Math.floor(index / 15);
+    const jitter = ((index * 37) % 23) / 23 - 0.5;
+    return {
+      x: -width * 0.43 + column * (width * 0.061) + jitter * 0.026,
+      z: centerZ - depth * 0.42 + row * (depth * 0.105) - jitter * 0.035,
+      scale: 0.011 + ((index * 13) % 9) * 0.0011,
+      shade: ["#b9b4a8", "#8f918a", "#d1cec4", "#777b75"][index % 4],
+    };
+  }), [width, depth, centerZ]);
+  return <group>{pebbles.map((pebble, index) => <mesh key={index} position={[pebble.x, 0.028, pebble.z]} rotation={[0, ((index * 29) % 17) * 0.11, 0]} scale={[1.35, 0.58, 1]} castShadow receiveShadow><dodecahedronGeometry args={[pebble.scale, 0]} /><meshStandardMaterial color={pebble.shade} roughness={0.92} /></mesh>)}</group>;
+}
+
+function Planting({ width, depth, centerZ }: { width: number; depth: number; centerZ: number }) {
+  const plants = useMemo(() => Array.from({ length: 18 }, (_, index) => {
+    const column = index % 6;
+    const row = Math.floor(index / 6);
+    return {
+      x: -width * 0.34 + column * (width * 0.136),
+      z: centerZ - depth * 0.29 + row * (depth * 0.23),
+      flowering: index % 4 === 0,
+    };
+  }), [width, depth, centerZ]);
+  return <group>{plants.map((plant, index) => <group key={index} position={[plant.x, 0.035, plant.z]} rotation={[0, (index % 5) * 0.42, 0]}>
+    <mesh position={[-0.025, 0.026, 0]} rotation={[0.18, -0.55, -0.72]} scale={[1.15, 0.34, 0.55]} castShadow><sphereGeometry args={[0.042, 10, 7]} /><meshStandardMaterial color={index % 3 ? "#3e6948" : "#567c4e"} roughness={0.9} /></mesh>
+    <mesh position={[0.025, 0.03, 0.004]} rotation={[-0.12, 0.5, 0.72]} scale={[1.18, 0.34, 0.55]} castShadow><sphereGeometry args={[0.043, 10, 7]} /><meshStandardMaterial color="#456f4d" roughness={0.9} /></mesh>
+    <mesh position={[0, 0.038, -0.02]} rotation={[0.65, 0, 0]} scale={[1.05, 0.3, 0.52]} castShadow><sphereGeometry args={[0.038, 10, 7]} /><meshStandardMaterial color="#60845a" roughness={0.9} /></mesh>
+    {plant.flowering ? <mesh position={[0, 0.075, 0]} castShadow><sphereGeometry args={[0.018, 10, 7]} /><meshStandardMaterial color={index % 8 ? "#ece6d7" : "#b56b61"} roughness={0.75} /></mesh> : null}
+  </group>)}</group>;
+}
+
+function GraveContext({ draft }: { draft: MonumentDraft }) {
+  const plot = plotDimensions(draft);
+  const border = 0.062;
+  const centerZ = plot.depth / 2 - 0.04;
+  const enclosure = draft.enclosure ?? "keine";
+  const freeMemorial = draft.grabtyp === "gedenkstein";
+  return (
+    <group>
+      <mesh position={[0, 0.008, centerZ]} receiveShadow>
+        {freeMemorial ? <cylinderGeometry args={[plot.width * 0.52, plot.width * 0.56, 0.018, 48]} /> : <boxGeometry args={[plot.width, 0.016, plot.depth]} />}
+        <meshStandardMaterial color={freeMemorial ? "#587153" : enclosure === "kieselpflaster" ? "#6f7068" : "#554f43"} roughness={1} />
+      </mesh>
+      {!freeMemorial && enclosure !== "keine" ? <>
+        <BorderStone draft={draft} position={[-plot.width / 2, 0.032, centerZ]} size={[border, 0.064, plot.depth + border]} />
+        <BorderStone draft={draft} position={[plot.width / 2, 0.032, centerZ]} size={[border, 0.064, plot.depth + border]} />
+        <BorderStone draft={draft} position={[0, 0.032, plot.depth - 0.04]} size={[plot.width + border, 0.064, border]} />
+        <BorderStone draft={draft} position={[0, 0.032, -0.04]} size={[plot.width + border, 0.064, border]} />
+      </> : null}
+      {!freeMemorial && enclosure === "abdeckplatte" ? <>
+        <BorderStone draft={draft} position={[-plot.width * 0.275, 0.045, centerZ]} size={[plot.width * 0.43, 0.07, plot.depth - 0.12]} />
+        <BorderStone draft={draft} position={[plot.width * 0.275, 0.045, centerZ]} size={[plot.width * 0.43, 0.07, plot.depth - 0.12]} />
+      </> : null}
+      {!freeMemorial && enclosure === "kieselpflaster" ? <PebbleBed width={plot.width} depth={plot.depth} centerZ={centerZ} /> : null}
+      {!freeMemorial && enclosure === "pflanzflaeche" ? <Planting width={plot.width} depth={plot.depth} centerZ={centerZ} /> : null}
+    </group>
+  );
+}
+
+function CemeteryEnvironment() {
+  const distantStones = [-2.35, -1.55, 1.65, 2.42];
+  return <group>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.018, 0]} receiveShadow><planeGeometry args={[14, 12]} /><meshStandardMaterial color="#78906f" roughness={1} /></mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.003, 2.82]} receiveShadow><planeGeometry args={[6.5, 0.92]} /><meshStandardMaterial color="#c6c3ba" roughness={0.96} /></mesh>
+    <mesh position={[0, 0.18, -3.15]} receiveShadow><boxGeometry args={[8, 0.36, 0.5]} /><meshStandardMaterial color="#5d7657" roughness={1} /></mesh>
+    {distantStones.map((x, index) => <group key={x} position={[x, 0, -2.45 - (index % 2) * 0.2]} rotation={[0, index % 2 ? 0.12 : -0.09, 0]}>
+      <RoundedBox args={[0.34, 0.46 + (index % 2) * 0.09, 0.1]} radius={0.055} smoothness={3} position={[0, 0.23, 0]} castShadow><meshStandardMaterial color={index % 2 ? "#a2a7a2" : "#858d89"} roughness={0.92} /></RoundedBox>
+    </group>)}
+    {[-3.45, 3.45].map((x, index) => <group key={x} position={[x, 0, -3.35]}>
+      <mesh position={[0, 0.65, 0]} castShadow><cylinderGeometry args={[0.065, 0.09, 1.3, 10]} /><meshStandardMaterial color="#6a5945" roughness={1} /></mesh>
+      <mesh position={[0, 1.3, 0]} scale={[1, 0.82, 0.82]} castShadow><icosahedronGeometry args={[0.52, 1]} /><meshStandardMaterial color={index ? "#527556" : "#5b7d59"} roughness={1} /></mesh>
+    </group>)}
+  </group>;
+}
+
+function Scene({ draft }: { draft: MonumentDraft }) {
+  const { w, h, d } = cmToMeters(draft);
+  const plot = plotDimensions(draft);
+  const low = draft.form === "liegestein" || draft.form === "kissenstein" || draft.form === "buch";
+  const mountedAccessory = draft.bronze === "kreuz_standard" || draft.bronze === "kreuz_premium";
   return (
     <>
       <CameraRig draft={draft} />
-      <hemisphereLight args={["#f5f3ed", "#686c68", 0.52]} />
-      <directionalLight castShadow position={[3.5, 5, 3]} intensity={1.18} shadow-mapSize={[2048, 2048]} shadow-bias={-0.0003} />
+      <fog attach="fog" args={["#e4e9e4", 4.4, 8.5]} />
+      <hemisphereLight args={["#f4f7f3", "#52604d", 0.92]} />
+      <directionalLight castShadow position={[-3.5, 6, 4.5]} intensity={1.72} color="#fff5df" shadow-mapSize={[2048, 2048]} shadow-bias={-0.0003} />
+      <CemeteryEnvironment />
       <GraveContext draft={draft} />
       <group rotation={[0, -0.24, 0]}>
         <StoneModel draft={draft} />
         <Suspense fallback={null}><Inscription draft={draft} /></Suspense>
+        <Motifs draft={draft} />
+        {mountedAccessory ? <BronzeAccessory draft={draft} /> : null}
       </group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[8, 8]} />
-        <meshBasicMaterial color="#969995" />
-      </mesh>
+      {!mountedAccessory ? <BronzeAccessory draft={draft} /> : null}
       <ContactShadows position={[0, 0.006, 0]} opacity={0.5} scale={4} blur={2.7} far={2.8} />
-      <OrbitControls makeDefault target={[0, low ? 0.12 : h * 0.45, 0]} enableDamping dampingFactor={0.07} minDistance={Math.max(0.9, Math.max(w, h, d) * 1.15)} maxDistance={8} minPolarAngle={0.45} maxPolarAngle={Math.PI / 2 - 0.035} />
+      <OrbitControls makeDefault target={[0, low ? 0.12 : h * 0.43, plot.depth * 0.2]} enableDamping dampingFactor={0.07} minDistance={Math.max(1.05, Math.max(w, h, d) * 1.25)} maxDistance={8} minPolarAngle={0.38} maxPolarAngle={Math.PI / 2 - 0.035} />
     </>
   );
 }
@@ -601,17 +793,17 @@ export function MonumentPreview({ draft, orderId, embedded = false, hero = false
   return (
     <div className={embedded || hero ? "" : "flex flex-col gap-2"}>
       {!embedded && !hero ? <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">3D-Vorschau</p> : null}
-      <div id="monument-preview-root" className={`relative w-full overflow-hidden bg-[#b4b6b2] ${hero ? "h-[min(68vh,620px)] min-h-112" : embedded ? "h-96" : "h-80 border border-zinc-200 dark:border-zinc-700"}`}>
+      <div id="monument-preview-root" className={`relative w-full overflow-hidden bg-[#dce3dd] ${hero ? "h-[min(68vh,620px)] min-h-112" : embedded ? "h-96" : "h-80 border border-zinc-200 dark:border-zinc-700"}`}>
         <Canvas shadows camera={{ position: [1.25, 0.9, 1.45], fov: 32 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false }} dpr={[1, 1.75]}>
-          <color attach="background" args={["#b4b6b2"]} />
+          <color attach="background" args={["#dce3dd"]} />
           <Environment resolution={128}>
-            <Lightformer form="rect" intensity={3.2} color="#fffaf0" position={[0, 4, 2]} scale={[5, 5, 1]} />
-            <Lightformer form="rect" intensity={2.1} color="#dce9e4" position={[-4, 1, 1]} rotation={[0, Math.PI / 2, 0]} scale={[3, 5, 1]} />
-            <Lightformer form="rect" intensity={1.6} color="#d8d5cc" position={[4, 1, -2]} rotation={[0, -Math.PI / 2, 0]} scale={[3, 4, 1]} />
+            <Lightformer form="rect" intensity={2.7} color="#fff8e9" position={[0, 5, 3]} scale={[6, 5, 1]} />
+            <Lightformer form="rect" intensity={1.4} color="#dceae1" position={[-4, 2, 1]} rotation={[0, Math.PI / 2, 0]} scale={[4, 6, 1]} />
+            <Lightformer form="rect" intensity={0.9} color="#c8d1ca" position={[4, 1, -2]} rotation={[0, -Math.PI / 2, 0]} scale={[3, 4, 1]} />
           </Environment>
           <Scene draft={draft} />
         </Canvas>
-        {downloadEnabled ? <button type="button" onClick={capture} className="absolute bottom-3 right-3 border border-white/60 bg-black/65 px-3 py-2 text-xs font-medium text-white backdrop-blur hover:bg-black/80">PNG speichern</button> : null}
+        {downloadEnabled ? <button type="button" onClick={capture} title="Vorschau als PNG speichern" className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-md border border-white/60 bg-[#17372d]/88 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:bg-[#102a22]"><Download className="size-4" aria-hidden="true" /> PNG</button> : null}
       </div>
     </div>
   );

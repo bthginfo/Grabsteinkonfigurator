@@ -92,8 +92,8 @@ select {
 }
 
 .atelier-preview #monument-preview-root {
-  height: clamp(20rem, 42vw, 34rem);
-  background: #d5d6d1;
+  height: clamp(25rem, 46vw, 42rem);
+  background: #dce3dd;
 }
 
 .atelier-preview canvas {
@@ -102,7 +102,15 @@ select {
 
 @media (max-width: 1023px) {
   .atelier-preview #monument-preview-root {
-    height: 21rem;
+    height: min(58svh, 34rem);
+    min-height: 24rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .atelier-preview #monument-preview-root {
+    height: 25rem;
+    min-height: 25rem;
   }
 }
 
