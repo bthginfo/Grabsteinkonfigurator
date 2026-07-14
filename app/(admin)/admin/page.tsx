@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ArrowUpRight, Inbox } from "lucide-react";
 import { updateOrderStatusAction } from "@/lib/actions/admin-actions";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
 import { labelForOrderStatus, orderStatusOptions } from "@/lib/order-status";
@@ -15,7 +16,7 @@ function formatDate(date: Date) {
 export default async function AdminHomePage() {
   if (!isAdminConfigured()) {
     return (
-      <div className="flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+      <div className="flex flex-col gap-3 rounded-lg border border-[#e4cf9e] bg-[#fff9e8] p-5 text-sm text-[#654f21]">
         <h1 className="text-lg font-semibold">Admin noch nicht konfiguriert</h1>
         <p>
           Setze <code>ADMIN_PASSWORD</code> in der <code>.env</code>, damit der
@@ -35,24 +36,22 @@ export default async function AdminHomePage() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Bestellungen
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Die neuesten Entwürfe und Aufträge aus der Datenbank.
-        </p>
+    <div className="flex flex-col gap-7">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#12644f]">Übersicht</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-normal text-[#17231e]">Anfragen</h1>
+          <p className="mt-2 text-sm text-[#68756f]">Aktuelle Entwürfe, Kontaktdaten und Bearbeitungsstatus.</p>
+        </div>
+        <span className="text-sm font-medium tabular-nums text-[#68756f]">{orders.length} Einträge</span>
       </div>
 
       {orders.length === 0 ? (
-        <p className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-          Noch keine Entwürfe vorhanden.
-        </p>
+        <div className="grid min-h-56 place-items-center rounded-lg border border-dashed border-[#cbd5cf] bg-white p-8 text-center"><div><Inbox className="mx-auto size-7 text-[#8a958f]" /><p className="mt-3 text-sm font-medium text-[#435149]">Noch keine Entwürfe vorhanden.</p></div></div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <table className="min-w-full divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
-            <thead className="bg-zinc-50 text-left text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+        <div className="overflow-x-auto rounded-lg border border-[#d8dfda] bg-white shadow-[0_10px_35px_rgba(30,48,39,0.06)]">
+          <table className="min-w-full divide-y divide-[#dce2de] text-sm">
+            <thead className="bg-[#f5f7f5] text-left text-[10px] font-bold uppercase tracking-[0.12em] text-[#7c8882]">
               <tr>
                 <th className="px-4 py-3 font-medium">Referenz</th>
                 <th className="px-4 py-3 font-medium">E-Mail</th>
@@ -61,23 +60,23 @@ export default async function AdminHomePage() {
                 <th className="px-4 py-3 font-medium">Aktionen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            <tbody className="divide-y divide-[#e3e8e5]">
               {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="whitespace-nowrap px-4 py-3 font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                <tr key={order.id} className="transition hover:bg-[#f7faf8]">
+                  <td className="whitespace-nowrap px-4 py-4 font-mono text-xs text-[#435149]">
                     {order.id}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-zinc-700 dark:text-zinc-300">
+                  <td className="whitespace-nowrap px-4 py-4 text-[#35433c]">
                     {order.customerEmail ?? "-"}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                  <td className="whitespace-nowrap px-4 py-4 text-[#68756f]">
                     {formatDate(order.updatedAt)}
                   </td>
                   <td className="px-4 py-3">
                     <form action={updateOrderStatusAction} className="flex gap-2">
                       <input name="orderId" type="hidden" value={order.id} />
                       <select
-                        className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                        className="min-h-9 rounded-md border border-[#cbd5cf] bg-white px-2 text-sm text-[#24322b]"
                         defaultValue={order.status}
                         name="status"
                       >
@@ -88,7 +87,7 @@ export default async function AdminHomePage() {
                         ))}
                       </select>
                       <button
-                        className="rounded-lg border border-zinc-300 px-3 py-1 font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                        className="min-h-9 rounded-md border border-[#cbd5cf] px-3 font-medium text-[#435149] hover:bg-[#edf2ef]"
                         type="submit"
                       >
                         Speichern
@@ -96,12 +95,7 @@ export default async function AdminHomePage() {
                     </form>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <Link
-                      className="font-medium text-zinc-800 underline-offset-4 hover:underline dark:text-zinc-200"
-                      href={`/konfigurator/d/${order.id}`}
-                    >
-                      Öffnen
-                    </Link>
+                    <Link title="Entwurf öffnen" className="inline-flex items-center gap-2 font-semibold text-[#12644f] hover:text-[#0c4f3e]" href={`/konfigurator/d/${order.id}`}>Öffnen <ArrowUpRight className="size-4" /></Link>
                   </td>
                 </tr>
               ))}

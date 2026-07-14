@@ -15,12 +15,11 @@ export default async function AdminCatalogPage() {
   const initialJson = JSON.stringify(catalog, null, 2);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Katalog
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+    <div className="flex flex-col gap-7">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#12644f]">Produktdaten</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-normal text-[#17231e]">Katalog</h1>
+        <p className="mt-2 text-sm text-[#68756f]">
           Aktiver Preis- und Produktkatalog. Änderungen wirken auf neue
           Preisberechnungen, PDFs und E-Mails.
         </p>
@@ -40,11 +39,11 @@ export default async function AdminCatalogPage() {
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-      <p className="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+    <div className="rounded-lg border border-[#d8dfda] bg-white p-5 shadow-[0_8px_28px_rgba(30,48,39,0.05)]">
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#7c8882]">
         {label}
       </p>
-      <p className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+      <p className="mt-2 text-xl font-semibold text-[#17231e] tabular-nums">
         {value}
       </p>
     </div>

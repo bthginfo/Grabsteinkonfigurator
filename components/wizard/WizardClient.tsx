@@ -338,7 +338,7 @@ function WizardInner({
                 {draft.grabtyp ? (
                   <>
                     <p className="flex gap-3 rounded-md bg-[#f0f5f2] px-4 py-3 text-xs leading-5 text-[#56615b]">
-                      <CircleDot className="mt-0.5 size-4 shrink-0 text-[#17624b]" />
+                      <CircleDot className="mt-0.5 size-4 shrink-0 text-[#12644f]" />
                       <span>
                       {GRAVE_TYPE_NOTES[draft.grabtyp]} Die verbindlichen Maße richten sich nach der örtlichen Friedhofsordnung.
                       </span>
@@ -351,7 +351,7 @@ function WizardInner({
                     />
                   </>
                 ) : (
-                  <p className="border border-dashed border-[#cdd2ce] px-4 py-5 text-sm text-[#626a65]">Wählen Sie zuerst die Grabart. Danach erscheinen passende Formfamilien und Maße.</p>
+                  <p className="border border-dashed border-[#cdd2ce] px-4 py-5 text-sm text-[#68756f]">Wählen Sie zuerst die Grabart. Danach erscheinen passende Formfamilien und Maße.</p>
                 )}
               </FieldGroup>
             </StageShell>
@@ -464,7 +464,7 @@ function WizardInner({
                 <NumberField label="Buchstabenhöhe" value={draft.letterHeightMm} min={10} max={120} unit="mm" onChange={(letterHeightMm) => patchDraft({ letterHeightMm })} />
                 <NumberField label="Gravurtiefe" value={draft.engravingDepthMm} min={0} max={15} unit="mm" onChange={(engravingDepthMm) => patchDraft({ engravingDepthMm })} />
                 <label className="text-sm">
-                  <span className="mb-1.5 block text-xs font-medium text-[#626a65]">Farbfüllung</span>
+                  <span className="mb-1.5 block text-xs font-medium text-[#68756f]">Farbfüllung</span>
                   <SelectField
                     label="Farbfüllung"
                     value={draft.inscriptionColor ?? "kontrast_auto"}
@@ -501,16 +501,16 @@ function WizardInner({
                   onChange={(value) => patchDraft({ enclosure: value as MonumentDraft["enclosure"] })}
                 />
               </FieldGroup>
-              <label className="flex min-h-16 cursor-pointer items-start gap-3 rounded-md border border-[#d9ddda] bg-[#f8faf9] p-4 text-sm">
+              <label className="flex min-h-16 cursor-pointer items-start gap-3 rounded-md border border-[#dce2de] bg-[#f8faf9] p-4 text-sm">
                 <input
                   type="checkbox"
-                  className="mt-0.5 size-5 accent-[#17624b]"
+                  className="mt-0.5 size-5 accent-[#12644f]"
                   checked={draft.montage !== false}
                   onChange={(event) => patchDraft({ montage: event.target.checked })}
                 />
                 <span>
-                  <span className="block font-semibold text-[#202421]">Montage und Versetzung einplanen</span>
-                  <span className="mt-1 block leading-5 text-[#626a65]">Pauschale laut Katalog; die endgültigen Kosten werden nach Ortstermin bestätigt.</span>
+                  <span className="block font-semibold text-[#17231e]">Montage und Versetzung einplanen</span>
+                  <span className="mt-1 block leading-5 text-[#68756f]">Pauschale laut Katalog; die endgültigen Kosten werden nach Ortstermin bestätigt.</span>
                 </span>
               </label>
               <FieldGroup legend="Friedhof und Grablage für das Spec-Sheet">
@@ -532,12 +532,12 @@ function WizardInner({
             >
               <ConfigurationSummary draft={draft} />
               {submitted ? (
-                <div className="border-l-4 border-[#17624b] bg-[#edf6f2] p-5 text-[#174b3b]">
+                <div className="border-l-4 border-[#12644f] bg-[#edf6f2] p-5 text-[#174b3b]">
                   <p className="font-semibold">Anfrage ist eingegangen</p>
                   <p className="mt-1 text-sm">{submitState?.message ?? "Dieser Entwurf wurde bereits als Anfrage übermittelt."}</p>
                 </div>
               ) : (
-                <form action={submitAction} className="flex flex-col gap-4 border-t border-[#d9ddda] pt-6">
+                <form action={submitAction} className="flex flex-col gap-4 border-t border-[#dce2de] pt-6">
                   <input type="hidden" name="orderId" value={orderId} />
                   <div className="grid gap-4 sm:grid-cols-2">
                     <TextField name="name" label="Ihr Name" required defaultValue={initialCustomer.name ?? ""} />
@@ -546,23 +546,23 @@ function WizardInner({
                     <TextField name="postalCode" label="Postleitzahl" required defaultValue={initialCustomer.postalCode ?? ""} />
                   </div>
                   <TextAreaField name="message" label="Hinweise oder Wünsche (optional)" defaultValue={initialCustomer.message ?? ""} />
-                  <label className="flex items-start gap-3 text-sm leading-5 text-[#626a65]">
-                    <input className="mt-0.5 size-5 accent-[#17624b]" type="checkbox" name="consent" required />
+                  <label className="flex items-start gap-3 text-sm leading-5 text-[#68756f]">
+                    <input className="mt-0.5 size-5 accent-[#12644f]" type="checkbox" name="consent" required />
                     <span>Ich stimme zu, dass meine Angaben zur Bearbeitung dieser Anfrage verwendet werden.</span>
                   </label>
                   {submitState?.error ? <p className="text-sm text-red-700" role="alert">{submitState.error}</p> : null}
                   <button
                     type="submit"
                     disabled={submitPending}
-                    className="min-h-12 w-full bg-[#17624b] px-6 text-sm font-semibold text-white transition hover:bg-[#104736] disabled:cursor-wait disabled:opacity-50 sm:w-fit"
+                    className="min-h-12 w-full bg-[#12644f] px-6 text-sm font-semibold text-white transition hover:bg-[#0c4f3e] disabled:cursor-wait disabled:opacity-50 sm:w-fit"
                   >
                     {submitPending ? "Anfrage wird gesendet..." : "Unverbindliche Anfrage senden"}
                   </button>
                 </form>
               )}
               <div className="flex flex-wrap gap-3 text-sm">
-                <a className="inline-flex min-h-11 items-center border border-[#cdd2ce] px-4 font-medium text-[#4f5752] hover:border-[#17624b] hover:text-[#17624b]" href={`/api/orders/${orderId}/pdf?variant=customer-de`}>PDF-Angebot</a>
-                <a className="inline-flex min-h-11 items-center border border-[#cdd2ce] px-4 font-medium text-[#4f5752] hover:border-[#17624b] hover:text-[#17624b]" href={`/api/orders/${orderId}/pdf?variant=supplier-en`}>Fertigungs-Spec (EN)</a>
+                <a className="inline-flex min-h-11 items-center border border-[#cdd2ce] px-4 font-medium text-[#4f5752] hover:border-[#12644f] hover:text-[#12644f]" href={`/api/orders/${orderId}/pdf?variant=customer-de`}>PDF-Angebot</a>
+                <a className="inline-flex min-h-11 items-center border border-[#cdd2ce] px-4 font-medium text-[#4f5752] hover:border-[#12644f] hover:text-[#12644f]" href={`/api/orders/${orderId}/pdf?variant=supplier-en`}>Fertigungs-Spec (EN)</a>
               </div>
             </StageShell>
           ) : null}
@@ -574,12 +574,12 @@ function WizardInner({
           </p>
         ) : null}
 
-        <div className={`${step === 5 ? "static" : "sticky bottom-0 z-20 shadow-[0_-12px_24px_rgba(32,36,33,0.06)] backdrop-blur"} -mx-5 mt-10 flex items-center justify-between border-t border-[#d9ddda] bg-white/95 px-5 py-4 sm:-mx-8 sm:px-8 lg:static lg:-mx-0 lg:bg-transparent lg:px-0 lg:pb-0 lg:shadow-none`}>
+        <div className={`${step === 5 ? "static" : "sticky bottom-0 z-20 shadow-[0_-12px_24px_rgba(32,36,33,0.06)] backdrop-blur"} -mx-5 mt-10 flex items-center justify-between border-t border-[#dce2de] bg-white/95 px-5 py-4 sm:-mx-8 sm:px-8 lg:static lg:-mx-0 lg:bg-transparent lg:px-0 lg:pb-0 lg:shadow-none`}>
           <button
             type="button"
             onClick={() => void goBack()}
             disabled={step === 1 || saving}
-            className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[#626a65] hover:text-[#17624b] disabled:invisible"
+            className="inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[#68756f] hover:text-[#12644f] disabled:invisible"
           >
             <ChevronLeft className="mr-1.5 size-4" /> Zurück
           </button>
@@ -588,7 +588,7 @@ function WizardInner({
               type="button"
               onClick={() => void goNext()}
               disabled={saving}
-              className="inline-flex min-h-12 items-center bg-[#17624b] px-6 text-sm font-semibold text-white transition hover:bg-[#104736] active:translate-y-px disabled:cursor-wait disabled:opacity-55"
+              className="inline-flex min-h-12 items-center bg-[#12644f] px-6 text-sm font-semibold text-white transition hover:bg-[#0c4f3e] active:translate-y-px disabled:cursor-wait disabled:opacity-55"
             >
               {saving ? "Wird gespeichert..." : "Weiter"} {!saving ? <ChevronRight className="ml-2 size-4" /> : null}
             </button>
@@ -597,19 +597,19 @@ function WizardInner({
       </section>
 
       <aside className={`${step === 5 ? "order-2" : "order-1"} min-w-0 lg:sticky lg:top-6 lg:order-2`}>
-        <div className="atelier-preview overflow-hidden rounded-lg border border-[#cfd7d2] bg-white shadow-[0_18px_55px_rgba(25,38,31,0.12)]">
-          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#d9ddda] bg-white px-4 sm:px-5">
+        <div className="atelier-preview overflow-hidden rounded-lg border border-[#d6ded9] bg-white shadow-[0_18px_55px_rgba(25,38,31,0.12)]">
+          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#dce2de] bg-white px-4 sm:px-5">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#17624b]">3D-Konfiguration</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#12644f]">3D-Konfiguration</p>
               <p className="mt-0.5 text-xs font-medium text-[#4f5752]">{FORMS.find((item) => item.value === draft.form)?.label ?? "Form wählen"} · {MATERIALS.find((item) => item.value === draft.material)?.label ?? "Material wählen"}</p>
             </div>
-            <span className="flex items-center gap-2 text-[11px] text-[#747b76]"><span className="size-1.5 rounded-full bg-[#23a36d]" />Live</span>
+            <span className="flex items-center gap-2 text-[11px] text-[#7c8882]"><span className="size-1.5 rounded-full bg-[#23a36d]" />Live</span>
           </div>
           <MonumentPreview draft={draft} orderId={orderId} embedded />
           <PricePanel price={price} currency={catalog.currency} taxLabel={catalog.taxLabel} />
           <ReadinessPanel readiness={readiness} currentStage={step} />
         </div>
-        <p className="mt-3 px-1 text-xs leading-relaxed text-[#747b76]">
+        <p className="mt-3 px-1 text-xs leading-relaxed text-[#7c8882]">
           Richtpreis auf Basis der aktuellen Auswahl. Naturstein, Fundament und örtliche Gegebenheiten werden vor einem verbindlichen Angebot geprüft.
         </p>
       </aside>
@@ -623,15 +623,15 @@ function StageProgress({ current }: { current: number }) {
   return (
     <div className="border-b border-[#e1e5e2] pb-5">
       <div className="mb-3 flex items-center justify-between gap-4">
-        <span className="text-xs font-semibold text-[#17624b]">Schritt {current} von {STAGES.length}</span>
+        <span className="text-xs font-semibold text-[#12644f]">Schritt {current} von {STAGES.length}</span>
         <span className="text-xs font-medium text-[#4f5752]">{STAGES[current - 1]?.label}</span>
       </div>
       <div className="h-1 overflow-hidden rounded-full bg-[#e4e8e5]">
-        <div className="h-full rounded-full bg-[#17624b] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        <div className="h-full rounded-full bg-[#12644f] transition-[width] duration-300" style={{ width: `${progress}%` }} />
       </div>
       <ol className="mt-3 hidden grid-cols-5 gap-2 sm:grid" aria-label="Fortschritt">
         {STAGES.map((stage) => (
-          <li key={stage.number} className={`flex items-center gap-1.5 text-[11px] ${stage.number === current ? "font-semibold text-[#202421]" : stage.number < current ? "text-[#17624b]" : "text-[#858c87]"}`}>
+          <li key={stage.number} className={`flex items-center gap-1.5 text-[11px] ${stage.number === current ? "font-semibold text-[#17231e]" : stage.number < current ? "text-[#12644f]" : "text-[#858c87]"}`}>
             {stage.number < current ? <Check className="size-3.5" /> : <span className="tabular-nums">{stage.number}</span>}
             <span className="truncate">{stage.label}</span>
           </li>
@@ -645,7 +645,7 @@ function StageShell({ eyebrow, title, description, children }: { eyebrow: string
   return (
     <div className="flex flex-col gap-7">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#17624b]">{eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#12644f]">{eyebrow}</p>
         <h1 className="mt-2 text-2xl font-semibold leading-tight text-[#18201c] sm:text-[1.75rem]">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[#65706a]">{description}</p>
       </header>
@@ -657,7 +657,7 @@ function StageShell({ eyebrow, title, description, children }: { eyebrow: string
 function FieldGroup({ legend, children }: { legend: string; children: React.ReactNode }) {
   return (
     <fieldset className="flex flex-col gap-3 border-t border-[#e1e4e2] pt-5 first:border-t-0 first:pt-0">
-      <legend className="mb-3 pr-3 text-sm font-semibold text-[#202421]">{legend}</legend>
+      <legend className="mb-3 pr-3 text-sm font-semibold text-[#17231e]">{legend}</legend>
       {children}
     </fieldset>
   );
@@ -698,7 +698,7 @@ function GraveProfileGrid({ options, value, onChange }: { options: readonly Grav
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
-            className={`relative flex min-h-24 items-center gap-4 rounded-lg border p-3 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8] hover:bg-[#fafbfa]"}`}
+            className={`relative flex min-h-24 items-center gap-4 rounded-lg border p-3 text-left transition ${selected ? "border-[#12644f] bg-[#f0f7f4] shadow-[0_0_0_1px_#12644f]" : "border-[#dce2de] bg-white hover:border-[#a4afa8] hover:bg-[#fafbfa]"}`}
           >
             <GraveProfileVisual value={option.value} selected={selected} />
             <span className="min-w-0 flex-1">
@@ -707,9 +707,9 @@ function GraveProfileGrid({ options, value, onChange }: { options: readonly Grav
                 <span className="rounded bg-[#e9eeeb] px-1.5 py-0.5 text-[10px] font-medium text-[#5d6761]">{option.short}</span>
               </span>
               <span className="mt-1 block text-xs leading-5 text-[#65706a]">{option.description}</span>
-              <span className="mt-1 block text-[11px] font-medium text-[#17624b]">{option.footprint}</span>
+              <span className="mt-1 block text-[11px] font-medium text-[#12644f]">{option.footprint}</span>
             </span>
-            {selected ? <Check className="absolute right-3 top-3 size-4 text-[#17624b]" /> : null}
+            {selected ? <Check className="absolute right-3 top-3 size-4 text-[#12644f]" /> : null}
           </button>
         );
       })}
@@ -728,15 +728,15 @@ function ChoiceGrid({ options, value, onChange, compact = false }: { options: re
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
-            className={`group relative flex ${compact ? "min-h-20" : "min-h-24"} items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8] hover:bg-[#fafbfa]"}`}
+            className={`group relative flex ${compact ? "min-h-20" : "min-h-24"} items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition ${selected ? "border-[#12644f] bg-[#f0f7f4] shadow-[0_0_0_1px_#12644f]" : "border-[#dce2de] bg-white hover:border-[#a4afa8] hover:bg-[#fafbfa]"}`}
           >
-            {option.swatch ? <span className="size-10 shrink-0 rounded border border-black/15 shadow-inner" style={{ backgroundColor: option.swatch }} /> : <span className={`flex size-7 shrink-0 items-center justify-center rounded-md border ${selected ? "border-[#17624b] bg-[#17624b] text-white" : "border-[#cbd2cd] bg-[#f5f7f6] text-transparent"}`}><Check className="size-4" /></span>}
+            {option.swatch ? <span className="size-10 shrink-0 rounded border border-black/15 shadow-inner" style={{ backgroundColor: option.swatch }} /> : <span className={`flex size-7 shrink-0 items-center justify-center rounded-md border ${selected ? "border-[#12644f] bg-[#12644f] text-white" : "border-[#cbd2cd] bg-[#f5f7f6] text-transparent"}`}><Check className="size-4" /></span>}
             <span className="min-w-0">
-              <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#202421]">
+              <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#17231e]">
                 {option.label}
-                {option.badge ? <span className="rounded bg-[#dbe9e3] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#17624b]">{option.badge}</span> : null}
+                {option.badge ? <span className="rounded bg-[#dbe9e3] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.08em] text-[#12644f]">{option.badge}</span> : null}
               </span>
-              <span className="mt-1 block text-xs leading-5 text-[#626a65]">{option.description}</span>
+              <span className="mt-1 block text-xs leading-5 text-[#68756f]">{option.description}</span>
             </span>
           </button>
         );
@@ -754,7 +754,7 @@ function SegmentedOptions({ options, value, onChange, fontPreview = false }: { o
           type="button"
           aria-pressed={optionValue === value}
           onClick={() => onChange(optionValue)}
-          className={`min-h-11 rounded-[4px] border px-4 py-2 text-sm transition ${fontPreview ? `font-preview-${optionValue} text-base` : ""} ${optionValue === value ? "border-[#17624b] bg-[#17624b] font-semibold text-white shadow-sm" : "border-[#d2d7d3] bg-white text-[#4f5752] hover:border-[#7b857f] hover:bg-[#f8f9f7]"}`}
+          className={`min-h-11 rounded-[4px] border px-4 py-2 text-sm transition ${fontPreview ? `font-preview-${optionValue} text-base` : ""} ${optionValue === value ? "border-[#12644f] bg-[#12644f] font-semibold text-white shadow-sm" : "border-[#d2d7d3] bg-white text-[#4f5752] hover:border-[#7b857f] hover:bg-[#f8f9f7]"}`}
         >
           {label}
         </button>
@@ -801,12 +801,12 @@ function SurfaceGrid({ options, value, onChange }: { options: readonly SurfaceOp
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
-            className={`flex min-h-20 items-center gap-3 rounded-[5px] border p-3 text-left transition ${selected ? "border-[#17624b] bg-[#edf6f2] shadow-[inset_3px_0_0_#17624b]" : "border-[#d9ddda] bg-white hover:border-[#9ca59f]"}`}
+            className={`flex min-h-20 items-center gap-3 rounded-[5px] border p-3 text-left transition ${selected ? "border-[#12644f] bg-[#edf6f2] shadow-[inset_3px_0_0_#12644f]" : "border-[#dce2de] bg-white hover:border-[#9ca59f]"}`}
           >
             <SurfaceSwatch surface={option.value} />
             <span>
-              <span className="block text-sm font-semibold text-[#202421]">{option.label}</span>
-              <span className="mt-0.5 block text-xs leading-4 text-[#626a65]">{option.description}</span>
+              <span className="block text-sm font-semibold text-[#17231e]">{option.label}</span>
+              <span className="mt-0.5 block text-xs leading-4 text-[#68756f]">{option.description}</span>
             </span>
           </button>
         );
@@ -839,11 +839,11 @@ function ToggleGrid({ options, selected, onChange }: { options: readonly (readon
               if (active) next.delete(value); else next.add(value);
               onChange([...next]);
             }}
-            className={`relative flex min-h-24 flex-col items-start justify-between rounded-lg border p-3 text-left text-sm transition ${active ? "border-[#17624b] bg-[#f0f7f4] font-semibold text-[#174b3b] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white text-[#4f5752] hover:border-[#a4afa8]"}`}
+            className={`relative flex min-h-24 flex-col items-start justify-between rounded-lg border p-3 text-left text-sm transition ${active ? "border-[#12644f] bg-[#f0f7f4] font-semibold text-[#174b3b] shadow-[0_0_0_1px_#12644f]" : "border-[#dce2de] bg-white text-[#4f5752] hover:border-[#a4afa8]"}`}
           >
-            <Icon className={`size-6 ${active ? "text-[#17624b]" : "text-[#747d77]"}`} strokeWidth={1.6} />
+            <Icon className={`size-6 ${active ? "text-[#12644f]" : "text-[#747d77]"}`} strokeWidth={1.6} />
             <span>{label}</span>
-            {active ? <Check className="absolute right-2.5 top-2.5 size-4 text-[#17624b]" /> : null}
+            {active ? <Check className="absolute right-2.5 top-2.5 size-4 text-[#12644f]" /> : null}
           </button>
         );
       })}
@@ -873,11 +873,11 @@ function AccessoryGrid({ value, onChange }: { value: string; onChange: (value: s
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(optionValue)}
-            className={`relative flex min-h-24 flex-col items-start justify-between rounded-lg border p-3 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8]"}`}
+            className={`relative flex min-h-24 flex-col items-start justify-between rounded-lg border p-3 text-left transition ${selected ? "border-[#12644f] bg-[#f0f7f4] shadow-[0_0_0_1px_#12644f]" : "border-[#dce2de] bg-white hover:border-[#a4afa8]"}`}
           >
             <Icon className={`size-6 ${selected ? "text-[#9a7138]" : "text-[#747d77]"}`} strokeWidth={1.6} />
             <span className="pr-4 text-xs font-medium leading-4 text-[#343c37]">{label}</span>
-            {selected ? <Check className="absolute right-2.5 top-2.5 size-4 text-[#17624b]" /> : null}
+            {selected ? <Check className="absolute right-2.5 top-2.5 size-4 text-[#12644f]" /> : null}
           </button>
         );
       })}
@@ -913,11 +913,11 @@ function EnclosureGrid({ value, onChange }: { value: string; onChange: (value: s
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(optionValue)}
-            className={`relative flex min-h-28 flex-col gap-2 rounded-lg border p-2.5 text-left transition ${selected ? "border-[#17624b] bg-[#f0f7f4] shadow-[0_0_0_1px_#17624b]" : "border-[#dce2de] bg-white hover:border-[#a4afa8]"}`}
+            className={`relative flex min-h-28 flex-col gap-2 rounded-lg border p-2.5 text-left transition ${selected ? "border-[#12644f] bg-[#f0f7f4] shadow-[0_0_0_1px_#12644f]" : "border-[#dce2de] bg-white hover:border-[#a4afa8]"}`}
           >
             <EnclosureVisual value={optionValue} />
             <span className="text-xs font-medium leading-4 text-[#343c37]">{label}</span>
-            {selected ? <Check className="absolute right-2 top-2 size-4 rounded bg-white/85 p-0.5 text-[#17624b]" /> : null}
+            {selected ? <Check className="absolute right-2 top-2 size-4 rounded bg-white/85 p-0.5 text-[#12644f]" /> : null}
           </button>
         );
       })}
@@ -928,10 +928,10 @@ function EnclosureGrid({ value, onChange }: { value: string; onChange: (value: s
 function NumberField({ label, value, min, max, onChange, unit = "cm" }: { label: string; value?: number; min: number; max: number; onChange: (value: number) => void; unit?: string }) {
   return (
     <label className="text-sm">
-      <span className="mb-1.5 block text-xs font-medium text-[#626a65]">{label}</span>
+      <span className="mb-1.5 block text-xs font-medium text-[#68756f]">{label}</span>
       <div className="relative">
-        <input className="min-h-12 w-full rounded-[4px] border border-[#cdd2ce] bg-white px-3 py-2.5 pr-10 text-[#202421] transition hover:border-[#9ca59f] focus:border-[#17624b]" type="number" min={min} max={max} value={value ?? ""} onChange={(event) => onChange(Number(event.target.value))} />
-        <span className="pointer-events-none absolute right-3 top-3 text-sm text-[#747b76]">{unit}</span>
+        <input className="min-h-12 w-full rounded-[4px] border border-[#cdd2ce] bg-white px-3 py-2.5 pr-10 text-[#17231e] transition hover:border-[#9ca59f] focus:border-[#12644f]" type="number" min={min} max={max} value={value ?? ""} onChange={(event) => onChange(Number(event.target.value))} />
+        <span className="pointer-events-none absolute right-3 top-3 text-sm text-[#7c8882]">{unit}</span>
       </div>
     </label>
   );
@@ -942,7 +942,7 @@ function TextField({ label, value, onChange, placeholder, name, type = "text", r
   return (
     <label className="text-sm">
       <span className="mb-1.5 block font-medium text-[#343a36]">{label}</span>
-      <input className="min-h-12 w-full rounded-[4px] border border-[#cdd2ce] bg-white px-3.5 py-2.5 text-[#202421] placeholder:text-[#969d98] transition hover:border-[#9ca59f] focus:border-[#17624b]" name={name} type={type} required={required} placeholder={placeholder} {...(controlled ? { value: value ?? "", onChange: (event) => onChange(event.target.value) } : { defaultValue })} />
+      <input className="min-h-12 w-full rounded-[4px] border border-[#cdd2ce] bg-white px-3.5 py-2.5 text-[#17231e] placeholder:text-[#969d98] transition hover:border-[#9ca59f] focus:border-[#12644f]" name={name} type={type} required={required} placeholder={placeholder} {...(controlled ? { value: value ?? "", onChange: (event) => onChange(event.target.value) } : { defaultValue })} />
     </label>
   );
 }
@@ -952,14 +952,14 @@ function TextAreaField({ label, value, onChange, placeholder, name, defaultValue
   return (
     <label className="text-sm">
       <span className="mb-1.5 block font-medium text-[#343a36]">{label}</span>
-      <textarea className="min-h-28 w-full resize-y rounded-[4px] border border-[#cdd2ce] bg-white px-3.5 py-3 text-[#202421] placeholder:text-[#969d98] transition hover:border-[#9ca59f] focus:border-[#17624b]" name={name} placeholder={placeholder} {...(controlled ? { value: value ?? "", onChange: (event) => onChange(event.target.value) } : { defaultValue })} />
+      <textarea className="min-h-28 w-full resize-y rounded-[4px] border border-[#cdd2ce] bg-white px-3.5 py-3 text-[#17231e] placeholder:text-[#969d98] transition hover:border-[#9ca59f] focus:border-[#12644f]" name={name} placeholder={placeholder} {...(controlled ? { value: value ?? "", onChange: (event) => onChange(event.target.value) } : { defaultValue })} />
     </label>
   );
 }
 
 function SelectField({ label, value, options, onChange }: { label: string; value: string; options: readonly (readonly [string, string])[]; onChange: (value: string) => void }) {
   return (
-    <select aria-label={label} className="min-h-12 w-full rounded-[4px] border border-[#cdd2ce] bg-white px-3.5 py-2.5 text-sm text-[#202421] transition hover:border-[#9ca59f] focus:border-[#17624b]" value={value} onChange={(event) => onChange(event.target.value)}>
+    <select aria-label={label} className="min-h-12 w-full rounded-[4px] border border-[#cdd2ce] bg-white px-3.5 py-2.5 text-sm text-[#17231e] transition hover:border-[#9ca59f] focus:border-[#12644f]" value={value} onChange={(event) => onChange(event.target.value)}>
       {options.map(([optionValue, label]) => <option key={optionValue} value={optionValue}>{label}</option>)}
     </select>
   );
@@ -981,25 +981,25 @@ function patchInscription(draft: MonumentDraft, patchDraft: (patch: Partial<Monu
 function PricePanel({ price, currency, taxLabel }: { price: ReturnType<typeof calculatePrice>; currency: string; taxLabel?: string }) {
   if (!price.canCalculate) {
     return (
-      <div className="border-t border-[#d9ddda] bg-white p-5 sm:p-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#747b76]">Richtpreis</p>
-        <p className="mt-2 text-sm leading-relaxed text-[#626a65]">{price.reason}</p>
+      <div className="border-t border-[#dce2de] bg-white p-5 sm:p-6">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7c8882]">Richtpreis</p>
+        <p className="mt-2 text-sm leading-relaxed text-[#68756f]">{price.reason}</p>
       </div>
     );
   }
   const formatter = new Intl.NumberFormat("de-DE", { style: "currency", currency });
   return (
-    <div className="border-t border-[#d9ddda] bg-white p-5 sm:p-6">
+    <div className="border-t border-[#dce2de] bg-white p-5 sm:p-6">
       <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#747b76]">Richtpreis inkl. USt</p>
-          <p className="mt-1 text-3xl font-semibold tracking-normal text-[#202421] tabular-nums">{formatter.format(price.totalGross)}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7c8882]">Richtpreis inkl. USt</p>
+          <p className="mt-1 text-3xl font-semibold tracking-normal text-[#17231e] tabular-nums">{formatter.format(price.totalGross)}</p>
         </div>
-        <span className="max-w-full text-xs text-[#747b76] sm:text-right">{taxLabel}</span>
+        <span className="max-w-full text-xs text-[#7c8882] sm:text-right">{taxLabel}</span>
       </div>
       <div className="mt-4 space-y-2.5 border-t border-[#e1e4e2] pt-4 text-xs">
         {price.lines.map((line) => (
-          <div key={line.id} className="flex justify-between gap-3 text-[#626a65]">
+          <div key={line.id} className="flex justify-between gap-3 text-[#68756f]">
             <span className="min-w-0 truncate">{line.label}</span>
             <span className="shrink-0 tabular-nums">{formatter.format(line.lineTotalNet)}</span>
           </div>
@@ -1033,17 +1033,17 @@ function ReadinessPanel({
       : "Noch unvollständig";
 
   return (
-    <div className="border-t border-[#d9ddda] bg-[#f7f8f7] p-5 sm:p-6">
+    <div className="border-t border-[#dce2de] bg-[#f4f7f5] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#747b76]">Anfragereife</p>
-          <p className="mt-1 text-sm font-semibold text-[#202421]">{statusLabel}</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7c8882]">Anfragereife</p>
+          <p className="mt-1 text-sm font-semibold text-[#17231e]">{statusLabel}</p>
         </div>
-        <span className="text-2xl font-semibold tabular-nums text-[#17624b]">{readiness.score}%</span>
+        <span className="text-2xl font-semibold tabular-nums text-[#12644f]">{readiness.score}%</span>
       </div>
       <div className="mt-3 h-1.5 overflow-hidden bg-[#dfe4e1]" aria-label={`Anfragereife ${readiness.score} Prozent`}>
         <div
-          className="h-full bg-[#17624b] transition-[width] duration-300"
+          className="h-full bg-[#12644f] transition-[width] duration-300"
           style={{ width: `${readiness.score}%` }}
         />
       </div>
@@ -1058,20 +1058,20 @@ function ReadinessPanel({
               />
               <div>
                 <p className="font-semibold text-[#303632]">{item.title}</p>
-                <p className="text-[#626a65]">{item.action}</p>
+                <p className="text-[#68756f]">{item.action}</p>
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="mt-4 text-xs leading-5 text-[#626a65]">
+        <p className="mt-4 text-xs leading-5 text-[#68756f]">
           Dieser Schritt ist plausibel ausgefüllt.
           {nextOpenItem ? ` Als Nächstes fehlt: ${nextOpenItem.label}.` : " Alle Angaben für die Anfrage sind vorhanden."}
         </p>
       )}
 
       {currentStage === 5 ? (
-        <p className="mt-4 border-t border-[#d9ddda] pt-3 text-[11px] leading-5 text-[#747b76]">
+        <p className="mt-4 border-t border-[#dce2de] pt-3 text-[11px] leading-5 text-[#7c8882]">
           Die Fertigungsfreigabe erfolgt erst nach Friedhofsprüfung, Bemusterung und statischer Auslegung durch den ausführenden Steinmetz.
         </p>
       ) : null}
@@ -1094,11 +1094,11 @@ function ConfigurationSummary({ draft }: { draft: MonumentDraft }) {
     ["Einfassung", ENCLOSURES.find(([value]) => value === draft.enclosure)?.[1]],
   ];
   return (
-    <dl className="divide-y divide-[#e1e4e2] border-y border-[#d9ddda] text-sm">
+    <dl className="divide-y divide-[#e1e4e2] border-y border-[#dce2de] text-sm">
       {rows.map(([label, value]) => (
         <div key={label} className="grid grid-cols-[120px_1fr] gap-4 py-3">
-          <dt className="text-[#747b76]">{label}</dt>
-          <dd className="font-semibold text-[#202421]">{value || "—"}</dd>
+          <dt className="text-[#7c8882]">{label}</dt>
+          <dd className="font-semibold text-[#17231e]">{value || "—"}</dd>
         </div>
       ))}
     </dl>

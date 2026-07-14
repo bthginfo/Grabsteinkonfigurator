@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Grabstein Konfigurator",
-  description: "Online-Konfigurator für Grabmäler",
+  title: "Grabmal Studio",
+  description: "Grabmäler online gestalten und als konkrete Anfrage vorbereiten",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
       lang="de"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-black dark:text-zinc-50">
+      <body className="flex min-h-full flex-col bg-[#f6f8f6] text-[#17231e]">
         {children}
       </body>
     </html>

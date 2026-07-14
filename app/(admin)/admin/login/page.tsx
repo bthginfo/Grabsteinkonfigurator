@@ -8,16 +8,13 @@ export default async function AdminLoginPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Admin anmelden
-        </h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Zugriff auf Bestellungen und Statusverwaltung.
-        </p>
+    <div className="mx-auto flex min-h-[calc(100svh-11rem)] w-full max-w-md flex-col justify-center">
+      <div className="rounded-lg border border-[#d8dfda] bg-white p-7 shadow-[0_18px_55px_rgba(28,47,38,0.1)] sm:p-9">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#12644f]">Verwaltung</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-normal text-[#17231e]">Anmelden</h1>
+        <p className="mt-2 text-sm leading-6 text-[#68756f]">Zugriff auf Anfragen, Statusverwaltung und Produktkatalog.</p>
+        <div className="mt-7"><AdminLoginForm /></div>
       </div>
-      <AdminLoginForm />
     </div>
   );
 }

@@ -1,43 +1,41 @@
+import { ArrowRight, CheckCircle2, Cuboid, FileText, Palette, Type } from "lucide-react";
 import { createDraftAndRedirect } from "@/lib/actions/draft-actions";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
 
-const steps = ["Modell", "Naturstein", "Inschrift", "Ausstattung", "Anfrage"];
+const steps = [
+  { icon: Cuboid, label: "Modell" },
+  { icon: Palette, label: "Naturstein" },
+  { icon: Type, label: "Inschrift" },
+  { icon: FileText, label: "Anfrage" },
+] as const;
 
 export default function KonfiguratorStartPage() {
   return (
-    <main className="mx-auto grid min-h-[calc(100svh-7rem)] w-full max-w-7xl overflow-hidden rounded-lg border border-[#cfd7d2] bg-white shadow-[0_22px_65px_rgba(25,38,31,0.1)] lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)]">
-      <section className="flex flex-col justify-center p-7 sm:p-12 lg:p-16">
-        <div className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#17624b]">Neuer Entwurf</p>
-          <h1 className="mt-4 max-w-xl text-4xl font-semibold leading-[1.08] tracking-normal text-[#17201c] sm:text-5xl">Ihr Grabmal Schritt für Schritt gestalten</h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-[#626a65]">
-            Form, Naturstein, Inschrift und Grabanlage werden als gemeinsamer 3D-Entwurf gespeichert.
-          </p>
-          <form action={createDraftAndRedirect} className="mt-8">
-            <button type="submit" className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#17624b] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#104736] active:translate-y-px">
-              Entwurf beginnen <ArrowRight className="size-4" aria-hidden="true" />
-            </button>
-          </form>
-          <p className="mt-7 flex max-w-xl items-start gap-3 text-sm leading-6 text-[#626a65]">
-            <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-[#17624b]" aria-hidden="true" />
-            Unverbindlich und automatisch gespeichert. Maße, Material und Friedhofsvorgaben werden vor der Fertigung fachlich geprüft.
-          </p>
-        </div>
-      </section>
-
-      <aside className="flex flex-col justify-center border-t border-[#d6ddd8] bg-[#eaf0ec] p-7 sm:p-10 lg:border-l lg:border-t-0 lg:p-14">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#17624b]">Konfiguration</p>
-          <ol className="mt-6 divide-y divide-[#cbd5cf]">
-            {steps.map((step, index) => (
-              <li key={step} className="flex min-h-14 items-center gap-4 py-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-md bg-white text-xs font-bold tabular-nums text-[#17624b] shadow-sm">{index + 1}</span>
-                <span className="text-base font-semibold text-[#26312b]">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </aside>
+    <main className="mx-auto flex min-h-[calc(100svh-8rem)] w-full max-w-6xl flex-col justify-center py-6">
+      <div className="overflow-hidden rounded-lg border border-[#d6ded9] bg-white shadow-[0_24px_70px_rgba(27,47,37,0.1)]">
+        <section className="px-6 py-10 sm:px-10 sm:py-14 lg:px-16 lg:py-16">
+          <div className="max-w-3xl">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#12644f]">Neuer Entwurf</p>
+            <h1 className="mt-4 text-4xl font-semibold leading-[1.05] tracking-normal text-[#17231e] sm:text-5xl">Ein Grabmal konkret gestalten.</h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-[#65716b]">Form, Naturstein, Inschrift und Grabfläche werden in einer gemeinsamen 3D-Ansicht geplant. Der persönliche Entwurfslink bleibt jederzeit verfügbar.</p>
+            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <form action={createDraftAndRedirect}>
+                <button type="submit" className="inline-flex min-h-12 items-center gap-3 rounded-md bg-[#12644f] px-6 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(18,100,79,0.2)] transition hover:bg-[#0c4f3e]">
+                  Entwurf starten <ArrowRight className="size-4" aria-hidden="true" />
+                </button>
+              </form>
+              <span className="inline-flex items-center gap-2 text-sm text-[#65716b]"><CheckCircle2 className="size-4 text-[#12644f]" /> Unverbindlich und automatisch gespeichert</span>
+            </div>
+          </div>
+        </section>
+        <section className="grid border-t border-[#dce2de] bg-[#f4f7f5] sm:grid-cols-2 lg:grid-cols-4">
+          {steps.map(({ icon: Icon, label }, index) => (
+            <div key={label} className="flex items-center gap-3 border-b border-[#dce2de] px-6 py-5 last:border-b-0 sm:border-r lg:border-b-0 lg:last:border-r-0">
+              <span className="grid size-9 place-items-center rounded-md bg-white text-[#12644f] shadow-sm"><Icon className="size-4" /></span>
+              <div><span className="block text-[10px] font-bold text-[#8a958f]">0{index + 1}</span><span className="text-sm font-semibold text-[#24322b]">{label}</span></div>
+            </div>
+          ))}
+        </section>
+      </div>
     </main>
   );
 }

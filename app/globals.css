@@ -32,16 +32,16 @@
 }
 
 :root {
-  --background: #f4f5f3;
-  --foreground: #202421;
-  --atelier-ink: #202421;
-  --atelier-muted: #626a65;
-  --atelier-line: #d9ddda;
+  --background: #f6f8f6;
+  --foreground: #17231e;
+  --atelier-ink: #17231e;
+  --atelier-muted: #68756f;
+  --atelier-line: #dce2de;
   --atelier-paper: #ffffff;
-  --atelier-mineral: #eef0ed;
-  --atelier-emerald: #17624b;
-  --atelier-emerald-dark: #104736;
-  --atelier-brass: #9b7a3c;
+  --atelier-mineral: #edf2ef;
+  --atelier-emerald: #12644f;
+  --atelier-emerald-dark: #0c4f3e;
+  --atelier-accent: #d8e56c;
 }
 
 @theme inline {
@@ -56,6 +56,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   text-rendering: optimizeLegibility;
+  letter-spacing: 0;
 }
 
 ::selection {
@@ -77,8 +78,8 @@ select {
 }
 
 .font-display {
-  font-family: "Cormorant Atelier", Iowan Old Style, Baskerville, "Times New Roman", serif;
-  font-weight: 500;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-weight: 600;
 }
 
 .font-preview-antiqua { font-family: "Cormorant Atelier", serif; }
@@ -88,7 +89,11 @@ select {
 .font-preview-handschrift { font-family: "Great Vibes Memorial", cursive; font-size: 1.25rem; }
 
 .atelier-shadow {
-  box-shadow: 0 18px 50px rgb(30 37 32 / 10%);
+  box-shadow: 0 20px 60px rgb(24 44 34 / 12%);
+}
+
+.marketing-product #monument-preview-root {
+  height: clamp(26rem, 45vw, 38rem);
 }
 
 .atelier-preview #monument-preview-root {

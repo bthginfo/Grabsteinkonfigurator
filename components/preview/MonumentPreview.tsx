@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo } from "react";
+import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, OrbitControls, RoundedBox, Text, useTexture } from "@react-three/drei";
-import { Download } from "lucide-react";
+import { Download, LoaderCircle } from "lucide-react";
 import {
   BufferGeometry,
   CatmullRomCurve3,
@@ -31,6 +31,22 @@ const FONT_URLS = {
   modern: "/fonts/montserrat.ttf",
   handschrift: "/fonts/great-vibes.ttf",
 } as const;
+
+const MARBLE_TEXTURES = [
+  "/textures/Marble003/Marble003_1K-JPG_Color.jpg",
+  "/textures/Marble003/Marble003_1K-JPG_NormalGL.jpg",
+  "/textures/Marble003/Marble003_1K-JPG_Roughness.jpg",
+] as const;
+const ROCK_TEXTURES = [
+  "/textures/Rock024/Rock024_1K-JPG_Color.jpg",
+  "/textures/Rock024/Rock024_1K-JPG_NormalGL.jpg",
+  "/textures/Rock024/Rock024_1K-JPG_Roughness.jpg",
+] as const;
+
+if (typeof window !== "undefined") {
+  useTexture.preload([...MARBLE_TEXTURES]);
+  useTexture.preload([...ROCK_TEXTURES]);
+}
 
 type StoneMaps = { map?: Texture; normalMap?: Texture; roughnessMap?: Texture; bumpMap?: Texture };
 const graniteMapCache = new Map<string, StoneMaps>();
@@ -215,12 +231,7 @@ function ProceduralStoneMaterial({ material, materialKey }: { material: StoneMat
 }
 
 function PbrStoneMaterial({ material }: { material: StoneMaterialProps }) {
-  const asset = material.textureFamily === "marble" ? "Marble003/Marble003_1K-JPG" : "Rock024/Rock024_1K-JPG";
-  const loaded = useTexture([
-    `/textures/${asset}_Color.jpg`,
-    `/textures/${asset}_NormalGL.jpg`,
-    `/textures/${asset}_Roughness.jpg`,
-  ]) as Texture[];
+  const loaded = useTexture(material.textureFamily === "marble" ? [...MARBLE_TEXTURES] : [...ROCK_TEXTURES]) as Texture[];
   const maps = useMemo(() => {
     const [sourceColor, sourceNormal, sourceRoughness] = loaded;
     const map = sourceColor.clone();
@@ -749,28 +760,34 @@ function Planting({ width, depth, centerZ }: { width: number; depth: number; cen
 
 function GraveContext({ draft }: { draft: MonumentDraft }) {
   const plot = plotDimensions(draft);
+  const { w, d } = cmToMeters(draft);
   const border = 0.062;
-  const centerZ = plot.depth / 2 - 0.04;
+  const stoneWidthFactor = draft.form === "breitstein" || draft.form === "sockelanlage" ? 1.28 : draft.form === "herz" ? 1.18 : 1;
+  const foundationWidth = Math.max(plot.width + border, w * stoneWidthFactor + 0.08);
+  const foundationDepth = Math.max(d + 0.06, 0.18);
+  const joinZ = foundationDepth / 2;
+  const surfaceDepth = Math.max(0.25, plot.depth - joinZ);
+  const centerZ = joinZ + surfaceDepth / 2;
   const enclosure = draft.enclosure ?? "keine";
   const freeMemorial = draft.grabtyp === "gedenkstein";
   return (
     <group>
       <mesh position={[0, 0.008, centerZ]} receiveShadow>
-        {freeMemorial ? <cylinderGeometry args={[plot.width * 0.52, plot.width * 0.56, 0.018, 48]} /> : <boxGeometry args={[plot.width, 0.016, plot.depth]} />}
+        {freeMemorial ? <cylinderGeometry args={[plot.width * 0.52, plot.width * 0.56, 0.018, 48]} /> : <boxGeometry args={[plot.width, 0.016, surfaceDepth]} />}
         <meshStandardMaterial color={freeMemorial ? "#587153" : enclosure === "kieselpflaster" ? "#6f7068" : "#554f43"} roughness={1} />
       </mesh>
       {!freeMemorial && enclosure !== "keine" ? <>
-        <BorderStone draft={draft} position={[-plot.width / 2, 0.032, centerZ]} size={[border, 0.064, plot.depth + border]} />
-        <BorderStone draft={draft} position={[plot.width / 2, 0.032, centerZ]} size={[border, 0.064, plot.depth + border]} />
-        <BorderStone draft={draft} position={[0, 0.032, plot.depth - 0.04]} size={[plot.width + border, 0.064, border]} />
-        <BorderStone draft={draft} position={[0, 0.032, -0.04]} size={[plot.width + border, 0.064, border]} />
+        <BorderStone draft={draft} position={[0, 0.032, 0]} size={[foundationWidth, 0.064, foundationDepth]} />
+        <BorderStone draft={draft} position={[-plot.width / 2, 0.032, centerZ]} size={[border, 0.064, surfaceDepth]} />
+        <BorderStone draft={draft} position={[plot.width / 2, 0.032, centerZ]} size={[border, 0.064, surfaceDepth]} />
+        <BorderStone draft={draft} position={[0, 0.032, plot.depth]} size={[plot.width + border, 0.064, border]} />
       </> : null}
       {!freeMemorial && enclosure === "abdeckplatte" ? <>
-        <BorderStone draft={draft} position={[-plot.width * 0.275, 0.045, centerZ]} size={[plot.width * 0.43, 0.07, plot.depth - 0.12]} />
-        <BorderStone draft={draft} position={[plot.width * 0.275, 0.045, centerZ]} size={[plot.width * 0.43, 0.07, plot.depth - 0.12]} />
+        <BorderStone draft={draft} position={[-plot.width * 0.275, 0.045, centerZ]} size={[plot.width * 0.43, 0.07, Math.max(0.18, surfaceDepth - border)]} />
+        <BorderStone draft={draft} position={[plot.width * 0.275, 0.045, centerZ]} size={[plot.width * 0.43, 0.07, Math.max(0.18, surfaceDepth - border)]} />
       </> : null}
-      {!freeMemorial && enclosure === "kieselpflaster" ? <PebbleBed width={plot.width} depth={plot.depth} centerZ={centerZ} /> : null}
-      {!freeMemorial && enclosure === "pflanzflaeche" ? <Planting width={plot.width} depth={plot.depth} centerZ={centerZ} /> : null}
+      {!freeMemorial && enclosure === "kieselpflaster" ? <PebbleBed width={plot.width} depth={surfaceDepth} centerZ={centerZ} /> : null}
+      {!freeMemorial && enclosure === "pflanzflaeche" ? <Planting width={plot.width} depth={surfaceDepth} centerZ={centerZ} /> : null}
     </group>
   );
 }
@@ -813,7 +830,7 @@ function Scene({ draft }: { draft: MonumentDraft }) {
       <directionalLight castShadow position={[-3.5, 6, 4.5]} intensity={1.08} color="#fff5df" shadow-mapSize={[2048, 2048]} shadow-bias={-0.0003} />
       <CemeteryEnvironment />
       <GraveContext draft={draft} />
-      <group rotation={[0, -0.24, 0]}>
+      <group>
         <StoneModel draft={draft} />
         <Suspense fallback={null}><Inscription draft={draft} /></Suspense>
         <Motifs draft={draft} />
@@ -826,7 +843,16 @@ function Scene({ draft }: { draft: MonumentDraft }) {
   );
 }
 
+function SceneReady({ onReady }: { onReady: () => void }) {
+  useEffect(onReady, [onReady]);
+  return null;
+}
+
 export function MonumentPreview({ draft, orderId, embedded = false, hero = false, downloadEnabled = true }: { draft: MonumentDraft; orderId: string; embedded?: boolean; hero?: boolean; downloadEnabled?: boolean }) {
+  const renderedDraft = useDeferredValue(draft);
+  const [ready, setReady] = useState(false);
+  const markReady = useCallback(() => setReady(true), []);
+  const updating = !ready || renderedDraft !== draft;
   const capture = useCallback(() => {
     const canvas = document.querySelector("#monument-preview-root canvas") as HTMLCanvasElement | null;
     if (!canvas) return;
@@ -838,13 +864,16 @@ export function MonumentPreview({ draft, orderId, embedded = false, hero = false
 
   return (
     <div className={embedded || hero ? "" : "flex flex-col gap-2"}>
-      {!embedded && !hero ? <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">3D-Vorschau</p> : null}
-      <div id="monument-preview-root" className={`relative w-full overflow-hidden bg-[#dce3dd] ${hero ? "h-[min(68vh,620px)] min-h-112" : embedded ? "h-96" : "h-80 border border-zinc-200 dark:border-zinc-700"}`}>
+      {!embedded && !hero ? <p className="text-sm font-medium text-[#35433c]">3D-Vorschau</p> : null}
+      <div id="monument-preview-root" className={`relative w-full overflow-hidden bg-[#dce3dd] ${hero ? "h-[min(68vh,620px)] min-h-112" : embedded ? "h-96" : "h-80 border border-[#d8dfda]"}`}>
         <Canvas shadows camera={{ position: [1.25, 0.9, 1.45], fov: 32 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false }} dpr={[1, 1.75]}>
           <color attach="background" args={["#dce3dd"]} />
           <Environment files="/assets/environment/symmetrical_garden_02_2k.hdr" background blur={0.025} />
-          <Suspense fallback={null}><Scene draft={draft} /></Suspense>
+          <Suspense fallback={null}><Scene draft={renderedDraft} /><SceneReady onReady={markReady} /></Suspense>
         </Canvas>
+        <div aria-live="polite" className={`pointer-events-none absolute inset-0 grid place-items-center bg-[#e8eeea]/28 backdrop-blur-[1px] transition-opacity duration-200 ${updating ? "opacity-100" : "opacity-0"}`}>
+          <span className="inline-flex items-center gap-2 rounded-md border border-white/70 bg-white/92 px-3 py-2 text-xs font-semibold text-[#35433c] shadow-lg"><LoaderCircle className="size-4 animate-spin text-[#12644f]" /> 3D-Vorschau wird aktualisiert</span>
+        </div>
         {downloadEnabled ? <button type="button" onClick={capture} title="Vorschau als PNG speichern" className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-md border border-white/60 bg-[#17372d]/88 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:bg-[#102a22]"><Download className="size-4" aria-hidden="true" /> PNG</button> : null}
       </div>
     </div>
