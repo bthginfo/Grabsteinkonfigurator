@@ -2,20 +2,23 @@
 
 import { Suspense, useCallback, useEffect, useMemo } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, Lightformer, Line, OrbitControls, RoundedBox, Text, useTexture } from "@react-three/drei";
+import { ContactShadows, Environment, OrbitControls, RoundedBox, Text, useTexture } from "@react-three/drei";
 import { Download } from "lucide-react";
 import {
   BufferGeometry,
+  CatmullRomCurve3,
   CanvasTexture,
   Color,
   Float32BufferAttribute,
   IcosahedronGeometry,
   LinearFilter,
+  LineCurve3,
   RepeatWrapping,
   Shape,
   SRGBColorSpace,
   Texture,
   Vector2,
+  Vector3,
 } from "three";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { MonumentDraft } from "@/lib/config/monument-schema";
@@ -531,42 +534,66 @@ function motifPaths(kind: string): MotifPath[] {
     ];
   }
   if (kind === "baum") {
-    const crown = Array.from({ length: 17 }, (_, index) => {
-      const angle = (index / 16) * Math.PI * 2;
-      return [Math.cos(angle) * 0.37, Math.sin(angle) * 0.3 + 0.18, 0] as [number, number, number];
+    const crown = Array.from({ length: 25 }, (_, index) => {
+      const angle = (index / 24) * Math.PI * 2;
+      const radius = 1 + Math.sin(angle * 5) * 0.11;
+      return [Math.cos(angle) * 0.4 * radius, Math.sin(angle) * 0.31 * radius + 0.2, 0] as [number, number, number];
     });
     return [
-      [[0, -0.5, 0], [0, 0.1, 0]],
-      [[0, -0.05, 0], [-0.24, 0.2, 0]],
-      [[0, 0.02, 0], [0.27, 0.28, 0]],
+      [[-0.08, -0.5, 0], [-0.04, -0.18, 0], [0, 0.08, 0], [0.04, 0.25, 0]],
+      [[0, -0.18, 0], [-0.2, 0.05, 0], [-0.31, 0.22, 0]],
+      [[0, -0.04, 0], [0.18, 0.12, 0], [0.31, 0.31, 0]],
+      [[-0.06, -0.47, 0], [-0.24, -0.55, 0]],
+      [[-0.03, -0.43, 0], [0.2, -0.53, 0]],
       crown,
     ];
   }
   if (kind === "aere") {
-    const paths: MotifPath[] = [[[0, -0.52, 0], [0, 0.5, 0]]];
-    for (let index = 0; index < 5; index += 1) {
-      const y = -0.18 + index * 0.14;
-      paths.push([[0, y, 0], [-0.24, y + 0.13, 0]], [[0, y + 0.04, 0], [0.24, y + 0.17, 0]]);
+    const paths: MotifPath[] = [[[-0.08, -0.53, 0], [-0.03, -0.2, 0], [0, 0.12, 0], [0.04, 0.52, 0]]];
+    for (let index = 0; index < 6; index += 1) {
+      const y = -0.12 + index * 0.105;
+      const side = index % 2 ? 1 : -1;
+      paths.push([
+        [0.01, y, 0],
+        [side * 0.16, y + 0.03, 0],
+        [side * 0.2, y + 0.12, 0],
+        [side * 0.07, y + 0.09, 0],
+        [0.01, y, 0],
+      ]);
     }
+    paths.push([[-0.04, -0.3, 0], [-0.25, -0.12, 0], [-0.12, -0.04, 0], [-0.04, -0.3, 0]]);
     return paths;
   }
   if (kind === "lilie") {
     return [
-      [[0, -0.5, 0], [0, 0.12, 0]],
-      [[0, 0.1, 0], [-0.34, 0.42, 0], [-0.08, 0.34, 0], [0, 0.12, 0]],
-      [[0, 0.1, 0], [0.34, 0.42, 0], [0.08, 0.34, 0], [0, 0.12, 0]],
-      [[0, 0.12, 0], [0, 0.52, 0]],
-      [[0, -0.1, 0], [-0.26, 0.02, 0]],
+      [[0, -0.5, 0], [-0.02, -0.16, 0], [0, 0.1, 0]],
+      [[0, 0.08, 0], [-0.36, 0.4, 0], [-0.21, 0.47, 0], [-0.04, 0.22, 0], [0, 0.08, 0]],
+      [[0, 0.08, 0], [0.36, 0.4, 0], [0.21, 0.47, 0], [0.04, 0.22, 0], [0, 0.08, 0]],
+      [[0, 0.1, 0], [-0.08, 0.49, 0], [0, 0.58, 0], [0.08, 0.49, 0], [0, 0.1, 0]],
+      [[-0.02, -0.15, 0], [-0.29, 0.02, 0], [-0.16, 0.09, 0], [-0.02, -0.15, 0]],
     ];
   }
-  const petals: MotifPath[] = [];
-  for (let index = 0; index < 6; index += 1) {
-    const a = (index / 6) * Math.PI * 2;
-    petals.push([[0, 0.2, 0], [Math.cos(a) * 0.3, Math.sin(a) * 0.3 + 0.2, 0]]);
+  const petals: MotifPath[] = [[[0, 0.2, 0]]];
+  for (let index = 0; index < 5; index += 1) {
+    const a = (index / 5) * Math.PI * 2;
+    const cx = Math.cos(a) * 0.19;
+    const cy = Math.sin(a) * 0.17 + 0.22;
+    const loop = Array.from({ length: 9 }, (_, pointIndex) => {
+      const p = (pointIndex / 8) * Math.PI * 2;
+      return [cx + Math.cos(p + a) * 0.15, cy + Math.sin(p + a) * 0.1, 0] as [number, number, number];
+    });
+    petals.push(loop);
   }
+  const spiral = Array.from({ length: 20 }, (_, index) => {
+    const a = index * 0.72;
+    const radius = 0.12 * (1 - index / 22);
+    return [Math.cos(a) * radius, Math.sin(a) * radius + 0.22, 0] as [number, number, number];
+  });
   return [
-    [[0, -0.5, 0], [0, 0.2, 0]],
-    [[0, -0.15, 0], [-0.24, -0.02, 0]],
+    [[0, -0.52, 0], [-0.03, -0.18, 0], [0, 0.1, 0]],
+    [[-0.02, -0.2, 0], [-0.28, -0.04, 0], [-0.16, 0.04, 0], [-0.02, -0.2, 0]],
+    [[0, -0.08, 0], [0.26, 0.03, 0], [0.16, 0.11, 0], [0, -0.08, 0]],
+    spiral,
     ...petals,
   ];
 }
@@ -574,9 +601,19 @@ function motifPaths(kind: string): MotifPath[] {
 function MotifGlyph({ kind, color }: { kind: string; color: string }) {
   return (
     <group>
-      {motifPaths(kind).map((points, index) => (
-        <Line key={`${kind}-${index}`} points={points} color={color} lineWidth={1.35} />
-      ))}
+      {motifPaths(kind).filter((points) => points.length > 1).map((points, index) => {
+        const vectors = points.map(([x, y, z]) => new Vector3(x, y, z));
+        const first = vectors[0];
+        const last = vectors[vectors.length - 1];
+        const closed = vectors.length > 3 && first.distanceTo(last) < 0.001;
+        const curve = vectors.length === 2
+          ? new LineCurve3(vectors[0], vectors[1])
+          : new CatmullRomCurve3(vectors, closed, "centripetal");
+        return <mesh key={`${kind}-${index}`} castShadow>
+          <tubeGeometry args={[curve, Math.max(8, vectors.length * 3), 0.018, 7, closed]} />
+          <meshPhysicalMaterial color={color} emissive={color} emissiveIntensity={0.08} metalness={0.38} roughness={0.3} clearcoat={0.22} />
+        </mesh>;
+      })}
     </group>
   );
 }
@@ -739,18 +776,28 @@ function GraveContext({ draft }: { draft: MonumentDraft }) {
 }
 
 function CemeteryEnvironment() {
-  const distantStones = [-2.35, -1.55, 1.65, 2.42];
+  const [map, normalMap, roughnessMap] = useTexture([
+    "/assets/textures/leafy-grass/diffuse.jpg",
+    "/assets/textures/leafy-grass/normal.jpg",
+    "/assets/textures/leafy-grass/roughness.jpg",
+  ], (loaded) => {
+    (loaded as Texture[]).forEach((texture, index) => {
+      if (index === 0) texture.colorSpace = SRGBColorSpace;
+      texture.wrapS = RepeatWrapping;
+      texture.wrapT = RepeatWrapping;
+      texture.repeat.set(3.5, 3);
+      texture.needsUpdate = true;
+    });
+  });
   return <group>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.018, 0]} receiveShadow><planeGeometry args={[14, 12]} /><meshStandardMaterial color="#78906f" roughness={1} /></mesh>
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.003, 2.82]} receiveShadow><planeGeometry args={[6.5, 0.92]} /><meshStandardMaterial color="#c6c3ba" roughness={0.96} /></mesh>
-    <mesh position={[0, 0.18, -3.15]} receiveShadow><boxGeometry args={[8, 0.36, 0.5]} /><meshStandardMaterial color="#5d7657" roughness={1} /></mesh>
-    {distantStones.map((x, index) => <group key={x} position={[x, 0, -2.45 - (index % 2) * 0.2]} rotation={[0, index % 2 ? 0.12 : -0.09, 0]}>
-      <RoundedBox args={[0.34, 0.46 + (index % 2) * 0.09, 0.1]} radius={0.055} smoothness={3} position={[0, 0.23, 0]} castShadow><meshStandardMaterial color={index % 2 ? "#a2a7a2" : "#858d89"} roughness={0.92} /></RoundedBox>
-    </group>)}
-    {[-3.45, 3.45].map((x, index) => <group key={x} position={[x, 0, -3.35]}>
-      <mesh position={[0, 0.65, 0]} castShadow><cylinderGeometry args={[0.065, 0.09, 1.3, 10]} /><meshStandardMaterial color="#6a5945" roughness={1} /></mesh>
-      <mesh position={[0, 1.3, 0]} scale={[1, 0.82, 0.82]} castShadow><icosahedronGeometry args={[0.52, 1]} /><meshStandardMaterial color={index ? "#527556" : "#5b7d59"} roughness={1} /></mesh>
-    </group>)}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.018, 0]} receiveShadow>
+      <planeGeometry args={[14, 12, 1, 1]} />
+      <meshStandardMaterial color="#78906f" map={map} normalMap={normalMap} normalScale={new Vector2(0.55, 0.55)} roughnessMap={roughnessMap} roughness={0.95} />
+    </mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.004, 2.92]} receiveShadow>
+      <planeGeometry args={[7, 0.82]} />
+      <meshStandardMaterial color="#bcb9af" roughness={0.9} />
+    </mesh>
   </group>;
 }
 
@@ -762,9 +809,8 @@ function Scene({ draft }: { draft: MonumentDraft }) {
   return (
     <>
       <CameraRig draft={draft} />
-      <fog attach="fog" args={["#e4e9e4", 4.4, 8.5]} />
-      <hemisphereLight args={["#f4f7f3", "#52604d", 0.92]} />
-      <directionalLight castShadow position={[-3.5, 6, 4.5]} intensity={1.72} color="#fff5df" shadow-mapSize={[2048, 2048]} shadow-bias={-0.0003} />
+      <hemisphereLight args={["#f4f7f3", "#52604d", 0.3]} />
+      <directionalLight castShadow position={[-3.5, 6, 4.5]} intensity={1.08} color="#fff5df" shadow-mapSize={[2048, 2048]} shadow-bias={-0.0003} />
       <CemeteryEnvironment />
       <GraveContext draft={draft} />
       <group rotation={[0, -0.24, 0]}>
@@ -796,12 +842,8 @@ export function MonumentPreview({ draft, orderId, embedded = false, hero = false
       <div id="monument-preview-root" className={`relative w-full overflow-hidden bg-[#dce3dd] ${hero ? "h-[min(68vh,620px)] min-h-112" : embedded ? "h-96" : "h-80 border border-zinc-200 dark:border-zinc-700"}`}>
         <Canvas shadows camera={{ position: [1.25, 0.9, 1.45], fov: 32 }} gl={{ preserveDrawingBuffer: true, antialias: true, alpha: false }} dpr={[1, 1.75]}>
           <color attach="background" args={["#dce3dd"]} />
-          <Environment resolution={128}>
-            <Lightformer form="rect" intensity={2.7} color="#fff8e9" position={[0, 5, 3]} scale={[6, 5, 1]} />
-            <Lightformer form="rect" intensity={1.4} color="#dceae1" position={[-4, 2, 1]} rotation={[0, Math.PI / 2, 0]} scale={[4, 6, 1]} />
-            <Lightformer form="rect" intensity={0.9} color="#c8d1ca" position={[4, 1, -2]} rotation={[0, -Math.PI / 2, 0]} scale={[3, 4, 1]} />
-          </Environment>
-          <Scene draft={draft} />
+          <Environment files="/assets/environment/symmetrical_garden_02_2k.hdr" background blur={0.025} />
+          <Suspense fallback={null}><Scene draft={draft} /></Suspense>
         </Canvas>
         {downloadEnabled ? <button type="button" onClick={capture} title="Vorschau als PNG speichern" className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-md border border-white/60 bg-[#17372d]/88 px-3 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur transition hover:bg-[#102a22]"><Download className="size-4" aria-hidden="true" /> PNG</button> : null}
       </div>

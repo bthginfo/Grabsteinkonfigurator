@@ -65,50 +65,25 @@ const FORMS = [
   { value: "sockelanlage", label: "Sockelanlage", description: "Repräsentativ mit Sockel" },
 ] as const;
 
-const FORM_RECOMMENDATIONS: Record<Grabtyp, readonly FormTyp[]> = {
-  einzelgrab: ["stele", "sockelanlage", "felsen", "herz", "kreuz", "liegestein"],
-  urnengrab: ["kissenstein", "liegestein", "stele", "buch", "herz", "felsen"],
-  familiengrab: ["breitstein", "sockelanlage", "felsen", "stele", "liegestein"],
-  kindergrab: ["herz", "kissenstein", "buch", "stele", "kreuz"],
-  gedenkstein: ["felsen", "stele", "sockelanlage", "breitstein", "kreuz"],
-};
-
 const GRAVE_TYPE_NOTES: Record<Grabtyp, string> = {
-  einzelgrab: "Das längliche Anlagenprofil passt zu stehenden Grabmalen und einer bepflanzten Fläche.",
-  urnengrab: "Die kompakte Grundfläche funktioniert besonders gut mit Kissenstein, Platte, Buch oder kleiner Stele.",
-  familiengrab: "Die breitere Front schafft Raum für mehrere Namen, einen Breitstein oder eine Sockelanlage.",
-  kindergrab: "Reduzierte Maße und weichere Formen halten Stein und Grabfläche in einem behutsamen Maßstab.",
-  gedenkstein: "Dieses Profil zeigt nur den Erinnerungsstein in einer freien Grünfläche, ohne klassische Grabeinfassung.",
+  einzelgrab: "Längliche Grundfläche für eine klassische Grabstelle.",
+  urnengrab: "Kompakte, meist quadratische Grundfläche für eine oder mehrere Urnen.",
+  familiengrab: "Breite Grundfläche mit Platz für mehrere Grabstellen.",
+  kindergrab: "Kleinere Grundfläche mit zurückhaltenden Proportionen.",
+  gedenkstein: "Freie Grünfläche ohne klassische Grabeinfassung.",
 };
 
-function recommendedForms(grabtyp?: Grabtyp) {
-  if (!grabtyp) return [];
-  return FORM_RECOMMENDATIONS[grabtyp]
-    .map((value, index) => {
-      const form = FORMS.find((item) => item.value === value);
-      return form ? { ...form, badge: index === 0 ? "Empfohlen" : undefined } : null;
-    })
-    .filter((form): form is NonNullable<typeof form> => Boolean(form));
-}
-
-function defaultDimensions(grabtyp: Grabtyp, form: FormTyp) {
+function defaultDimensions(form: FormTyp) {
   if (form === "liegestein") {
-    return grabtyp === "familiengrab"
-      ? { heightCm: 20, widthCm: 80, depthCm: 50 }
-      : { heightCm: 12, widthCm: 50, depthCm: 40 };
+    return { heightCm: 12, widthCm: 50, depthCm: 40 };
   }
   if (form === "kissenstein") return { heightCm: 18, widthCm: 50, depthCm: 40 };
   if (form === "breitstein") return { heightCm: 85, widthCm: 125, depthCm: 18 };
-  if (form === "herz") {
-    return grabtyp === "kindergrab"
-      ? { heightCm: 50, widthCm: 38, depthCm: 10 }
-      : { heightCm: 76, widthCm: 50, depthCm: 14 };
-  }
+  if (form === "herz") return { heightCm: 76, widthCm: 50, depthCm: 14 };
   if (form === "buch") return { heightCm: 18, widthCm: 55, depthCm: 38 };
-  if (grabtyp === "urnengrab") return { heightCm: 55, widthCm: 36, depthCm: 10 };
-  if (grabtyp === "kindergrab") return { heightCm: 55, widthCm: 38, depthCm: 10 };
-  if (grabtyp === "familiengrab") return { heightCm: 90, widthCm: 110, depthCm: 18 };
-  if (grabtyp === "gedenkstein") return { heightCm: 75, widthCm: 50, depthCm: 15 };
+  if (form === "sockelanlage") return { heightCm: 90, widthCm: 70, depthCm: 18 };
+  if (form === "felsen") return { heightCm: 82, widthCm: 58, depthCm: 24 };
+  if (form === "kreuz") return { heightCm: 95, widthCm: 52, depthCm: 14 };
   return { heightCm: 90, widthCm: 50, depthCm: 14 };
 }
 
@@ -266,8 +241,8 @@ function WizardInner({
           base.form === draft.form &&
           (!draft.material || base.material === draft.material),
       );
-      const researchedDefaults = draft.grabtyp && draft.form
-        ? defaultDimensions(draft.grabtyp, draft.form)
+      const researchedDefaults = draft.form
+        ? defaultDimensions(draft.form)
         : { heightCm: 90, widthCm: 50, depthCm: 14 };
       patchDraft(matching
         ? { heightCm: matching.heightCm, widthCm: matching.widthCm, depthCm: matching.depthCm }
@@ -326,17 +301,12 @@ function WizardInner({
   };
 
   const submitted = initialStatus !== "draft" || submitState?.ok;
-  const availableForms = recommendedForms(draft.grabtyp);
-
   const selectGraveType = (grabtyp: Grabtyp) => {
-    const suitable = FORM_RECOMMENDATIONS[grabtyp];
-    const form = suitable[0];
-    patchDraft({ grabtyp, form, ...defaultDimensions(grabtyp, form) });
+    patchDraft({ grabtyp });
   };
 
   const selectForm = (form: FormTyp) => {
-    if (!draft.grabtyp) return;
-    patchDraft({ form, ...defaultDimensions(draft.grabtyp, form) });
+    patchDraft({ form, ...defaultDimensions(form) });
   };
 
   return (
@@ -355,7 +325,7 @@ function WizardInner({
             <StageShell
               eyebrow="Anlagenprofil"
               title="Welche Grabstelle soll gestaltet werden?"
-              description="Das Profil legt Grundfläche, Maßstab und passende Grabmalformen fest. Reihen- oder Wahlgrab werden später mit dem Friedhof geprüft."
+              description="Das Profil legt ausschließlich Größe und Darstellung der Grabfläche fest. Form und Maße des Grabmals bleiben davon unabhängig."
             >
               <FieldGroup legend="Grundfläche und Nutzung">
                 <GraveProfileGrid
@@ -364,7 +334,7 @@ function WizardInner({
                   onChange={(value) => selectGraveType(value as Grabtyp)}
                 />
               </FieldGroup>
-              <FieldGroup legend="Passende Grabmalform">
+              <FieldGroup legend="Grabmalform">
                 {draft.grabtyp ? (
                   <>
                     <p className="flex gap-3 rounded-md bg-[#f0f5f2] px-4 py-3 text-xs leading-5 text-[#56615b]">
@@ -374,7 +344,7 @@ function WizardInner({
                       </span>
                     </p>
                     <ChoiceGrid
-                      options={availableForms}
+                      options={FORMS}
                       value={draft.form}
                       onChange={(value) => selectForm(value as FormTyp)}
                       compact
