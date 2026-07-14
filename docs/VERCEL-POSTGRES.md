@@ -1,27 +1,36 @@
-# PostgreSQL (Vercel & Produktion)
+# Vercel und PostgreSQL
 
-Lokal nutzt das Repo standardmäßig **SQLite** (`DATABASE_URL=file:./prisma/dev.db`), damit die App ohne Docker läuft.
+Das Projekt verwendet lokal und in Produktion PostgreSQL. Damit sind Prisma-Schema und Migrationen in allen Umgebungen identisch.
 
-Für **Vercel** oder eine **gemeinsame Postgres-Instanz**:
+## Lokal
 
-1. In `prisma/schema.prisma` den Block `datasource` auf PostgreSQL umstellen:
-
-```prisma
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+```bash
+copy .env.example .env
+docker compose up -d
+npm install
+npm run db:migrate
+npm run dev
 ```
 
-2. In Vercel (oder `.env`) `DATABASE_URL` auf die Postgres-URL setzen (z. B. Neon).
+`docker-compose.yml` stellt PostgreSQL 16 unter `localhost:5432` bereit.
 
-3. Migrationen neu erzeugen oder das frühere SQL aus dem Git-Verlauf anwenden — Tabelle `Order` wie im Modell.
+## Vercel
 
-4. `npx prisma migrate deploy` gegen die Ziel-DB ausführen.
+1. Das GitHub-Repository als neues Next.js-Projekt importieren.
+2. Im Vercel Marketplace eine PostgreSQL-Integration wie Neon mit dem Projekt verbinden.
+3. Pruefen, dass die Integration `DATABASE_URL` fuer Production, Preview und Development gesetzt hat. In serverlosen Umgebungen eine gepoolte URL verwenden.
+4. `ADMIN_PASSWORD` und einen langen, zufaelligen `ADMIN_SESSION_SECRET` in den Project Settings setzen.
+5. Optional die `SMTP_*`-Variablen aus `.env.example` setzen.
+6. Als Build Command `npm run vercel-build` verwenden. `vercel.json` setzt ihn bereits im Repository.
 
-SQLite-Datei `dev.db` im **Projektroot** (nicht committen; siehe `.gitignore`).
+Der Build fuehrt `prisma migrate deploy` aus. Der Befehl wendet nur ausstehende, versionierte Migrationen an und ist fuer Production/Staging vorgesehen.
+
+## Datenbankaenderungen
+
+Schema lokal in `prisma/schema.prisma` aendern und eine Migration erzeugen:
+
+```bash
+npm run db:migrate -- --name beschreibung
+```
+
+Die erzeugten Dateien unter `prisma/migrations` immer mit committen. Produktions-Zugangsdaten gehoeren ausschliesslich in Vercel Environment Variables.

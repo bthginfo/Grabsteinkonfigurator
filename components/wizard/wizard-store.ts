@@ -10,10 +10,14 @@ export type WizardState = {
   replaceDraft: (draft: MonumentDraft) => void;
 };
 
-export function createWizardStore(orderId: string, initial: MonumentDraft) {
+export function createWizardStore(
+  orderId: string,
+  initial: MonumentDraft,
+  initialStep = 1,
+) {
   return createStore<WizardState>((set) => ({
     orderId,
-    step: 1,
+    step: Math.min(5, Math.max(1, initialStep)),
     draft: { ...initial, schemaVersion: 1 },
     setStep: (step) => set({ step }),
     patchDraft: (patch) =>

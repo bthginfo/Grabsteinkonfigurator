@@ -7,6 +7,50 @@
   "goldPerCharAddon": 6,
   "ornamentEach": 80,
   "montageNet": 260,
+  "laserFlatNet": 250,
+  "fallbackPricing": {
+    "baseNet": 620,
+    "referenceVolumeCm3": 24000,
+    "grabtypAddons": {
+      "einzelgrab": 180,
+      "urnengrab": 0,
+      "familiengrab": 520,
+      "kindergrab": -80,
+      "gedenkstein": 80
+    },
+    "formAddons": {
+      "stele": 100,
+      "breitstein": 340,
+      "liegestein": -120,
+      "felsen": 240,
+      "herz": 290,
+      "buch": 210,
+      "kissenstein": -60,
+      "kreuz": 360,
+      "sockelanlage": 480
+    },
+    "materialFactors": {
+      "granit_schwarz": 1.18,
+      "granit_grau": 1,
+      "granit_rot": 1.12,
+      "granit_gruen": 1.16,
+      "marmor_weiss": 1.25,
+      "marmor_grau": 1.18,
+      "sandstein": 0.94,
+      "kalkstein": 1.02,
+      "schiefer": 1.14,
+      "heimischer_stein": 1.28
+    },
+    "surfaceAddons": {
+      "poliert": 140,
+      "gestockt": 80,
+      "geflammt": 95,
+      "sandgestrahlt": 70,
+      "gebuerstet": 110,
+      "naturspalt": 40,
+      "kombination": 180
+    }
+  },
   "bronzePrices": {
     "keins": 0,
     "kreuz_standard": 180,

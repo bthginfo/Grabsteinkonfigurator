@@ -1,14 +1,13 @@
 // Prisma schema — https://www.prisma.io/docs/reference/prisma-schema-reference
 //
-// Lokal: DATABASE_URL=file:../dev.db → Datei `dev.db` im Projektroot — siehe .env.example
-// Produktion / Vercel: PostgreSQL — siehe docs/VERCEL-POSTGRES.md
+// Lokal und in Produktion: PostgreSQL — siehe .env.example und docs/VERCEL-POSTGRES.md
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,10 +16,24 @@ model Order {
   id              String   @id @default(cuid())
   status          String   @default("draft")
   configuration   Json?
+  priceSnapshot   Json?
+  customerName    String?
   customerEmail   String?
+  customerPhone   String?
+  customerPostalCode String?
+  customerMessage String?
+  submittedAt     DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([status])
   @@index([createdAt])
+}
+
+/// Aktiver Preis-/Produktkatalog als JSON; MVP bis Katalogpositionen normalisiert werden.
+model Catalog {
+  id        String   @id
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

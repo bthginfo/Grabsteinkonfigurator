@@ -23,7 +23,7 @@ export type PriceResult =
       totalGross: number;
     };
 
-const catalogSchema = z.object({
+export const priceCatalogSchema = z.object({
   schemaVersion: z.literal(1),
   currency: z.string(),
   vatRate: z.number(),
@@ -32,6 +32,24 @@ const catalogSchema = z.object({
   goldPerCharAddon: z.number(),
   ornamentEach: z.number(),
   montageNet: z.number(),
+  laserFlatNet: z.number().default(250),
+  fallbackPricing: z
+    .object({
+      baseNet: z.number(),
+      referenceVolumeCm3: z.number().positive(),
+      grabtypAddons: z.record(z.string(), z.number()),
+      formAddons: z.record(z.string(), z.number()),
+      materialFactors: z.record(z.string(), z.number().positive()),
+      surfaceAddons: z.record(z.string(), z.number()),
+    })
+    .default({
+      baseNet: 620,
+      referenceVolumeCm3: 24000,
+      grabtypAddons: {},
+      formAddons: {},
+      materialFactors: {},
+      surfaceAddons: {},
+    }),
   bronzePrices: z.record(z.string(), z.number()),
   enclosurePrices: z.record(z.string(), z.number()),
   bases: z.array(
@@ -50,10 +68,10 @@ const catalogSchema = z.object({
   ),
 });
 
-export type PriceCatalog = z.infer<typeof catalogSchema>;
+export type PriceCatalog = z.infer<typeof priceCatalogSchema>;
 
 export function parsePriceCatalog(raw: unknown): PriceCatalog | null {
-  const r = catalogSchema.safeParse(raw);
+  const r = priceCatalogSchema.safeParse(raw);
   return r.success ? r.data : null;
 }
 
@@ -61,6 +79,17 @@ function countInscriptionChars(ins: MonumentDraft["inscription"]): number {
   if (!ins?.name) return 0;
   const parts = [ins.name, ins.dates ?? "", ins.epitaph ?? ""];
   return parts.join("").length;
+}
+
+function dimensionsFromDraft(draft: MonumentDraft) {
+  const { heightCm, widthCm, depthCm } = draft;
+  if (heightCm == null || widthCm == null || depthCm == null) return null;
+  return { heightCm, widthCm, depthCm };
+}
+
+function dimensionFactor(volume: number, referenceVolume: number) {
+  const raw = Math.pow(volume / referenceVolume, 0.72);
+  return Math.min(2.4, Math.max(0.72, raw));
 }
 
 function findBestBase(draft: MonumentDraft, catalog: PriceCatalog) {
@@ -96,6 +125,53 @@ function findBestBase(draft: MonumentDraft, catalog: PriceCatalog) {
   return scored[0]!.b;
 }
 
+function calculateBaseLine(draft: MonumentDraft, catalog: PriceCatalog): PriceLine | null {
+  const dimensions = dimensionsFromDraft(draft);
+  if (!draft.grabtyp || !draft.form || !draft.material || !draft.surface || !dimensions) {
+    return null;
+  }
+
+  const requestedVolume =
+    dimensions.heightCm * dimensions.widthCm * dimensions.depthCm;
+  const catalogBase = findBestBase(draft, catalog);
+
+  if (catalogBase) {
+    const referenceVolume =
+      catalogBase.heightCm * catalogBase.widthCm * catalogBase.depthCm;
+    const price = Math.round(
+      catalogBase.priceNet * dimensionFactor(requestedVolume, referenceVolume),
+    );
+    return {
+      id: `base:${catalogBase.id}`,
+      label: catalogBase.label,
+      quantity: 1,
+      unitPriceNet: price,
+      lineTotalNet: price,
+    };
+  }
+
+  const fallback = catalog.fallbackPricing;
+  const beforeMaterial =
+    fallback.baseNet +
+    (fallback.grabtypAddons[draft.grabtyp] ?? 0) +
+    (fallback.formAddons[draft.form] ?? 0) +
+    (fallback.surfaceAddons[draft.surface] ?? 0);
+  const materialFactor = fallback.materialFactors[draft.material] ?? 1;
+  const scaled =
+    beforeMaterial *
+    materialFactor *
+    dimensionFactor(requestedVolume, fallback.referenceVolumeCm3);
+  const price = Math.round(scaled / 10) * 10;
+
+  return {
+    id: "base:calculated",
+    label: "Grabmal nach Auswahl und Maß",
+    quantity: 1,
+    unitPriceNet: price,
+    lineTotalNet: price,
+  };
+}
+
 /**
  * Preisberechnung aus Entwurf + Katalog.
  * Netto-Logik; USt aus `catalog.vatRate` (nur Darstellung).
@@ -109,26 +185,17 @@ export function calculatePrice(
     return { canCalculate: false, reason: "Ungültiger Katalog." };
   }
 
-  const base = findBestBase(draft, catalog);
-  if (!base) {
+  const baseLine = calculateBaseLine(draft, catalog);
+  if (!baseLine) {
     return {
       canCalculate: false,
-      reason:
-        "Kein passender Basispreis (Grabtyp / Form / Material / Oberfläche / Maße).",
+      reason: "Für einen Richtpreis fehlen noch Modell, Material, Oberfläche oder Maße.",
     };
   }
 
-  const lines: PriceLine[] = [
-    {
-      id: `base:${base.id}`,
-      label: base.label,
-      quantity: 1,
-      unitPriceNet: base.priceNet,
-      lineTotalNet: base.priceNet,
-    },
-  ];
+  const lines: PriceLine[] = [baseLine];
 
-  let subtotal = base.priceNet;
+  let subtotal = baseLine.lineTotalNet;
 
   const chars = countInscriptionChars(draft.inscription);
   if (
@@ -155,7 +222,7 @@ export function calculatePrice(
   }
 
   if (draft.engravingFinish === "laser") {
-    const laser = 250;
+    const laser = catalog.laserFlatNet;
     lines.push({
       id: "gravur:laser",
       label: "Lasergravur (Pauschale)",

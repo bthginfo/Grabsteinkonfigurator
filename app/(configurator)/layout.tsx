@@ -6,21 +6,25 @@ export default function ConfiguratorLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-zinc-50 dark:bg-zinc-950">
-      <header className="border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            Konfigurator
-          </span>
+    <div className="flex min-h-0 flex-1 flex-col bg-[#f4f5f3] text-[#202421]">
+      <header className="border-b border-black/10 bg-white px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="flex size-9 items-center justify-center bg-[#17624b] text-sm font-semibold text-white">GA</span>
+            <span>
+              <span className="font-display block text-lg leading-none">Grabmal Atelier</span>
+              <span className="mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.15em] text-[#747b76] sm:block">Persönlicher Entwurf</span>
+            </span>
+          </Link>
           <Link
             href="/"
-            className="text-sm text-zinc-600 underline-offset-4 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-200"
+            className="inline-flex min-h-11 items-center border-b border-transparent text-sm font-medium text-[#626a65] hover:border-[#17624b] hover:text-[#17624b]"
           >
-            Zur Startseite
+            Entwurf verlassen
           </Link>
         </div>
       </header>
-      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-8">{children}</div>
+      <div className="mx-auto flex w-full min-w-0 max-w-[1440px] flex-1 flex-col px-4 py-6 sm:px-6 sm:py-10">{children}</div>
     </div>
   );
 }

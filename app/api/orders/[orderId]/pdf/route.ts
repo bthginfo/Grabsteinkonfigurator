@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import catalogSample from "@/config/catalog/sample.json";
+import { getActiveCatalog } from "@/lib/catalog";
 import { parseMonumentDraft } from "@/lib/config/monument-schema";
 import { buildCustomerDePdfBuffer } from "@/lib/pdf/customer-de";
 import { buildSupplierEnPdfBuffer } from "@/lib/pdf/supplier-en";
@@ -14,6 +14,7 @@ export async function GET(
 ) {
   const { orderId } = await ctx.params;
   const variant = req.nextUrl.searchParams.get("variant") ?? "customer-de";
+  const inline = req.nextUrl.searchParams.get("preview") === "1";
 
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) {
@@ -21,11 +22,16 @@ export async function GET(
   }
 
   const draft = parseMonumentDraft(order.configuration ?? { schemaVersion: 1 });
-  const price = calculatePrice(draft, catalogSample);
+  const catalog = await getActiveCatalog();
+  const price = calculatePrice(draft, catalog);
 
   const buf =
     variant === "supplier-en"
-      ? await buildSupplierEnPdfBuffer(orderId, draft, price)
+      ? await buildSupplierEnPdfBuffer(orderId, draft, price, {
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          customerPhone: order.customerPhone,
+        })
       : await buildCustomerDePdfBuffer(orderId, draft, price);
 
   const filename =
@@ -37,7 +43,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${filename}"`,
     },
   });
 }

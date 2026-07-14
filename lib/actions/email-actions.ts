@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import catalogSample from "@/config/catalog/sample.json";
+import { getActiveCatalog } from "@/lib/catalog";
 import { parseMonumentDraft } from "@/lib/config/monument-schema";
 import { buildCustomerDePdfBuffer } from "@/lib/pdf/customer-de";
 import { buildSupplierEnPdfBuffer } from "@/lib/pdf/supplier-en";
@@ -34,7 +34,8 @@ export async function sendOfferEmailAction(
   }
 
   const draft = parseMonumentDraft(order.configuration ?? { schemaVersion: 1 });
-  const price = calculatePrice(draft, catalogSample);
+  const catalog = await getActiveCatalog();
+  const price = calculatePrice(draft, catalog);
 
   const [customerPdf, supplierPdf] = await Promise.all([
     buildCustomerDePdfBuffer(orderId, draft, price),

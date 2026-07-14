@@ -68,7 +68,7 @@ flowchart TB
 | ORM | **Prisma** | Migrationen, Typsicherheit |
 | DB | **PostgreSQL** (z. B. Neon, oder Docker lokal) | SQLite nur für sehr frühe Prototypen, wenn ihr DB-Features vermeiden wollt |
 | 3D | **Three.js** + **@react-three/fiber** + **@react-three/drei** | `useGLTF`, `Environment`, PBR |
-| Text auf Stein | **troika-three-text** oder Canvas-Textur | MVP oft schneller mit Textur |
+| Text auf Stein | **troika-three-text** über Drei `Text` | SDF-Rendering mit lokal gehosteten OFL-Schriften |
 | PDF | **@react-pdf/renderer** *oder* **pdf-lib** auf dem Server | Templates versionieren; Rechtstexte extern pflegen |
 | Mail | **Nodemailer** + Env: `SMTP_*` | SPF/DKIM/DMARC auf Domain |
 | Auth (Admin) | **Auth.js** (NextAuth) oder **Better Auth** | Nur Rollen `admin` zunächst |
@@ -138,7 +138,7 @@ Grabstein Konfigurator/
 
 ### 5.5 3D-Vorschau (`components/preview`)
 
-- **Umgesetzt (MVP):** R3F-Quader + `MeshPhysicalMaterial` nach Material/Oberfläche (`lib/preview/stone-appearance.ts`), `Environment` + `OrbitControls`, Inschrift per `Html`, PNG-Screenshot.
+- **Umgesetzt:** formabhängige, weich gefaste R3F-Geometrien + `MeshPhysicalMaterial` mit PBR-Maps bzw. prozeduraler Granitkörnung (`lib/preview/stone-appearance.ts`), Atelierlicht + `OrbitControls`, Inschrift als SDF-Textmesh, PNG-Screenshot.
 - **Phase B (optional):** GLTF-Modelle pro Formfamilie; HDRI feiner abstimmen.
 - **Phase C (optional):** Displacement, Postprocessing — nach Bedarf.
 
@@ -190,31 +190,39 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 
 ### Phase 1 — Wizard + Preis ohne 3D (ca. 1–2 Wochen)
 
-- [x] Zustand/Zod: alle Wizard-Schritte (UI + Validierung)
+- [x] Zustand/Zod: fünf fachlich gruppierte Wizard-Schritte (UI + Validierung)
 - [x] `lib/pricing` + Tests mit Beispiel-Katalog (`config/catalog/sample.json`)
 - [x] Entwurf in DB speichern / laden (`/konfigurator/d/[orderId]`)
-- [x] Zusammenfassungsseite mit Positionsliste (Schritt 11)
+- [x] Zusammenfassung mit Positionsliste, Kontaktdaten und Anfrageübermittlung
 
 ### Phase 2 — PDF + SMTP (ca. 1 Woche)
 
 - [x] PDF DE + PDF EN aus `Order` (`/api/orders/[orderId]/pdf`, PDFKit)
 - [x] Nodemailer: Versand an Kunde + optional `SMTP_SUPPLIER_TO` (EN-Anhang)
-- [x] Download-Link für PDF (Zusammenfassung Schritt 11)
+- [x] Download-Link für PDF in der Zusammenfassung
 
 ### Phase 3 — 3D MVP (ca. 1–2 Wochen)
 
-- [x] Platzhalter-Geometrie (Quader, kein externes glTF nötig für MVP)
-- [x] R3F-Scene: OrbitControls, Environment, materialabhängige PBR-Farben
-- [x] Inschrift: `Html`-Overlay auf der Vorderseite (Name, Daten, Spruch)
+- [x] Prozedurale Geometrien fuer Stele, Breitstein, getrennte Liege-/Kissensteine, Felsen, Herz, Buch, Kreuz und Sockelanlage
+- [x] Grabartabhaengige Formempfehlungen und recherchierte Startproportionen
+- [x] R3F-Scene: OrbitControls, lokale Environment-Lichtformer, materialabhaengige PBR-Farben
+- [x] Inschrift als SDF-Textmesh mit fünf lokal gehosteten Schriftstilen (Name, Daten, Spruch)
 - [x] Screenshot-Button → PNG-Download (`preserveDrawingBuffer`)
 
 ### Phase 4 — Admin + Katalog (ca. 1 Woche)
 
-- [ ] Auth für Admin
-- [ ] CRUD Katalog / Import JSON
-- [ ] Bestellübersicht, Status ändern
+- [x] Auth für Admin
+- [x] CRUD Katalog / Import JSON
+- [x] Bestellübersicht, Status ändern
 
-### Phase 5 — Zahlungen (nach rechtlicher Freigabe)
+### Phase 5 — Produktionsreife
+
+- [ ] Reale Produkte, Preise, Maße und Lieferregeln mit dem Fachbetrieb abgleichen
+- [ ] Rechtstexte, Einwilligung, Löschfristen und E-Mail-Inhalte fachlich freigeben
+- [ ] PostgreSQL, Dateiablage, Monitoring, Backups und Deployment einrichten
+- [ ] E2E-Tests für Entwurf, Anfrage, PDF und Admin ergänzen
+
+### Phase 6 — Zahlungen (nach rechtlicher Freigabe)
 
 - [ ] Stripe: Anzahlung / Webhooks
 - [ ] Status `paid_deposit` automatisch
@@ -227,4 +235,6 @@ Entitäten (angepasst werden, sobald rechtlicher Ablauf fix ist):
 2. ~~Referenz-Preis + Wizard Phase 1~~ (erledigt: `npm run test`, `lib/pricing/calculate.test.ts`).
 3. ~~**Phase 2:** PDF DE/EN + SMTP~~ (erledigt).
 4. ~~**Phase 3:** 3D-Vorschau (R3F MVP)~~ (erledigt).
-5. **Phase 4:** Admin + Katalog — oder **GLTF**-Modelle für realistischere Vorschau.
+5. ~~**Phase 4:** Admin + Katalog~~ (MVP erledigt; Katalogpositionen bei Bedarf normalisieren).
+6. **Als Nächstes:** Phase 5 mit echten Fachdaten, rechtlicher Freigabe und produktionsfähigem Betrieb.
+7. **Optional:** fotografisch vermessene GLTF-Modelle für eine realistischere Vorschau.

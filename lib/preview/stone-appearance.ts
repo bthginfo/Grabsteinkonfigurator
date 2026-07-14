@@ -6,6 +6,9 @@ export type StoneMaterialProps = {
   metalness: number;
   clearcoat: number;
   clearcoatRoughness: number;
+  textureFamily: "granite" | "marble" | "rock" | "slate";
+  normalStrength: number;
+  surfaceKey: Surface;
 };
 
 const MATERIAL_COLORS: Partial<Record<Material, string>> = {
@@ -25,41 +28,55 @@ export function stoneAppearance(
   material?: Material,
   surface?: Surface,
 ): StoneMaterialProps {
+  const surfaceKey = surface ?? "poliert";
   const color =
     (material && MATERIAL_COLORS[material]) ?? MATERIAL_COLORS.granit_grau ?? "#5c5c62";
   let roughness = 0.55;
   let clearcoat = 0.08;
   let clearcoatRoughness = 0.45;
+  let normalStrength = 0.18;
   switch (surface) {
     case "poliert":
       roughness = 0.22;
       clearcoat = 0.45;
       clearcoatRoughness = 0.12;
+      normalStrength = 0.05;
       break;
     case "gestockt":
     case "gebuerstet":
       roughness = 0.72;
       clearcoat = 0.04;
+      normalStrength = 0.24;
       break;
     case "sandgestrahlt":
     case "geflammt":
       roughness = 0.85;
       clearcoat = 0.02;
+      normalStrength = 0.32;
       break;
     case "naturspalt":
       roughness = 0.95;
       clearcoat = 0;
+      normalStrength = 0.5;
       break;
     case "kombination":
       roughness = 0.5;
       clearcoat = 0.2;
+      normalStrength = 0.16;
       break;
     default:
       break;
   }
   const metalness =
     material?.startsWith("marmor") ? 0.02 : material?.startsWith("granit") ? 0.06 : 0.04;
-  return { color, roughness, metalness, clearcoat, clearcoatRoughness };
+  const textureFamily = material?.startsWith("marmor")
+    ? "marble"
+    : material === "sandstein" || material === "kalkstein" || material === "heimischer_stein"
+      ? "rock"
+      : material === "schiefer"
+        ? "slate"
+        : "granite";
+  return { color, roughness, metalness, clearcoat, clearcoatRoughness, textureFamily, normalStrength, surfaceKey };
 }
 
 export function cmToMeters(

@@ -18,19 +18,14 @@ cd "Grabstein Konfigurator"
 copy .env.example .env
 ```
 
-**Datenbank (Standard lokal):** SQLite (`DATABASE_URL=file:../dev.db` → Datei `dev.db` im Projektroot). Nach `copy .env.example .env` einmal:
+**Datenbank:** PostgreSQL. Lokal den enthaltenen Docker-Service starten und die Migration anwenden:
 
 ```bash
-npx prisma db push
+docker compose up -d
+npm run db:migrate
 ```
 
-**Optional PostgreSQL:** `docker compose up -d`, in `.env` die Postgres-`DATABASE_URL` setzen und in `prisma/schema.prisma` wieder `postgresql` verwenden — Details: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
-
-Mit Postgres statt SQLite:
-
-```bash
-npx prisma migrate dev
-```
+Die Produktions- und Vercel-Konfiguration steht in [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
 
 ## Entwicklung
 
@@ -42,7 +37,8 @@ npm run dev
 - Konfigurator (neuer Entwurf): [http://localhost:3000/konfigurator](http://localhost:3000/konfigurator)  
 - Entwurf fortsetzen: URL aus der Adresszeile nach „Neuen Entwurf starten“ (`/konfigurator/d/…`)
 - PDF-Download (nach Wizard Zusammenfassung): `GET /api/orders/<orderId>/pdf?variant=customer-de` bzw. `variant=supplier-en`
-- Admin (Platzhalter): [http://localhost:3000/admin](http://localhost:3000/admin)
+- Admin: [http://localhost:3000/admin](http://localhost:3000/admin) (`ADMIN_PASSWORD` in `.env` setzen)
+- Katalogverwaltung: [http://localhost:3000/admin/catalog](http://localhost:3000/admin/catalog)
 
 ## Nützliche Befehle
 
@@ -56,14 +52,21 @@ npm run dev
 
 ## Vercel (Deployment)
 
-- **Build:** `npm run build` führt `prisma generate` aus; für den Build allein ist **keine** laufende DB nötig.
-- **Runtime:** Auf Vercel **PostgreSQL** verwenden (SQLite dort nicht sinnvoll). Schritte zum Umstellen des Prisma-Schemas und `binaryTargets`: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
+- **Build lokal:** `npm run build` generiert Prisma Client und baut Next.js.
+- **Build auf Vercel:** `npm run vercel-build` wendet ausstehende Migrationen mit `prisma migrate deploy` an und baut danach die App.
+- **Runtime:** Eine gepoolte PostgreSQL-Verbindung verwenden. Details: [docs/VERCEL-POSTGRES.md](docs/VERCEL-POSTGRES.md).
 - **Hinweis:** Entwurfs-URLs (`/konfigurator/d/…`) sind ohne Auth öffentlich — für Produktion Zugriffsschutz oder Token ergänzen.
 
-## Phase 0–3 (Stand)
+## Aktueller Stand
 
-- Wizard, Preis, SQLite lokal, PDF/Mail (Phase 0–2).
-- **3D:** Schritt 11 — `MonumentPreview` (R3F + drei), `lib/preview/stone-appearance.ts`, PNG-Screenshot.
+- Fünfstufiger Wizard mit serverseitig gespeichertem Fortschritt und URL-Schritt.
+- Regelbasierter Richtpreis für alle gültigen Kombinationen; exakte Katalogpositionen werden bevorzugt.
+- **3D:** formabhängige, weich gefaste Geometrien mit PBR-Steinmaterialien, lokal gehosteten SDF-Inschriften und PNG-Screenshot.
+- Anfrageformular mit Kundendaten, Statuswechsel und unveränderlichem Preissnapshot.
+- PDF DE/EN und optionaler SMTP-Versand.
+- **Admin:** Passwort-Login, Bestellübersicht, Statuswechsel, Katalog-JSON-Import.
+
+Als nächster Produktblock sind reale Preis- und Produktdaten, Rechtstexte/Datenschutz, Produktionsdatenbank und Deployment vorgesehen. Zahlungen folgen erst nach fachlicher und rechtlicher Freigabe.
 
 ## Paketname
 
